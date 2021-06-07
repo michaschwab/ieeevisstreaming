@@ -44,6 +44,11 @@ class IeeeVisStream {
     onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
         //document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID).style.pointerEvents = 'none';
 
+        if(state.data === PlayerState.UNSTARTED) {
+            // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
+            this.player.seekTo(this.getCurrentStartTimeS(), true);
+        }
+
         if(state.data === PlayerState.PAUSED) {
             this.player.playVideo();
             this.player.seekTo(this.getCurrentStartTimeS(), true);
@@ -98,6 +103,7 @@ class IeeeVisStream {
     }
 
     changeYoutubeVideo() {
+        // The seeking in the following line does not work for 0 (see workaround above).
         this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
         this.player.playVideo();
     }
@@ -114,9 +120,9 @@ class IeeeVisStream {
         if(this.getCurrentVideo().type === 'prerecorded' || !this.youtubePlayerReady) {
             const timeMs = new Date().getTime();
             const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-            const videoStartTimeS = this.data?.currentStatus?.videoStartTime;
+            console.log(Math.round((timeMs - videoStartTimestampMs) / 1000), timeMs, videoStartTimestampMs);
 
-            return Math.round((timeMs - videoStartTimestampMs) / 1000) + videoStartTimeS;
+            return Math.round((timeMs - videoStartTimestampMs) / 1000);
         } else if(this.getCurrentVideo().type === 'live') {
             return this.player.getDuration();
         }

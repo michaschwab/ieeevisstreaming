@@ -55,8 +55,12 @@ class IeeeVisStreamAdmin {
     }
 
     private updateVideoIndex(index: number) {
-        this.db.set('currentStatus/videoStartTimestamp', new Date().getTime());
-        this.db.set('currentStatus/videoIndex', index);
+        this.db.set('currentStatus', {
+            videoStartTimestamp: new Date().getTime(),
+            videoIndex: index
+        });
+        /*this.db.set('currentStatus/videoStartTimestamp', new Date().getTime());
+        this.db.set('currentStatus/videoIndex', index);*/
         this.data.currentStatus.videoStartTimestamp = new Date().getTime();
         this.data.currentStatus.videoIndex = index;
         this.updateTable();

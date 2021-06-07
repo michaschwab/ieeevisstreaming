@@ -67,6 +67,9 @@
       playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
     }
     onPlayerStateChange(state) {
+      if (state.data === PlayerState.UNSTARTED) {
+        this.player.seekTo(this.getCurrentStartTimeS(), true);
+      }
       if (state.data === PlayerState.PAUSED) {
         this.player.playVideo();
         this.player.seekTo(this.getCurrentStartTimeS(), true);
@@ -125,8 +128,8 @@
       if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
         const timeMs = new Date().getTime();
         const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-        const videoStartTimeS = this.data?.currentStatus?.videoStartTime;
-        return Math.round((timeMs - videoStartTimestampMs) / 1e3) + videoStartTimeS;
+        console.log(Math.round((timeMs - videoStartTimestampMs) / 1e3), timeMs, videoStartTimestampMs);
+        return Math.round((timeMs - videoStartTimestampMs) / 1e3);
       } else if (this.getCurrentVideo().type === "live") {
         return this.player.getDuration();
       }

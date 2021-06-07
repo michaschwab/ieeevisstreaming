@@ -33,13 +33,13 @@ export class IeeeVisDb {
         });
     }
 
-    set(path: string, value: string|number) {
+    set(path: string, value: string|number|{}) {
         this.trackRef.child(path).set(value);
     }
 }
 
 interface FirebaseRef {
     child: (childName: string) => FirebaseRef;
-    set: (value: string|number) => void;
+    set: (value: string|number|{}) => void;
     on: (event: "value", cb: (data: any) => void) => void;
 }
