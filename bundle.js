@@ -1,13 +1,9 @@
 (() => {
-  // main.ts
-  var _IeeeVisStream = class {
-    constructor() {
-      this.youtubeApiReady = false;
-      this.youtubePlayerLoaded = false;
-      this.startedPlaying = false;
+  // ieeevisdb.ts
+  var IeeeVisDb = class {
+    constructor(onData) {
+      this.onData = onData;
       this.initFirebase();
-      this.initYoutube();
-      this.loadData();
     }
     initFirebase() {
       const firebaseConfig = {
@@ -22,6 +18,24 @@
       };
       firebase.initializeApp(firebaseConfig);
       firebase.analytics();
+    }
+    loadData() {
+      var trackRef = firebase.database().ref("tracks/track1");
+      trackRef.on("value", (snapshot) => {
+        this.onData(snapshot.val());
+      });
+    }
+  };
+
+  // main.ts
+  var _IeeeVisStream = class {
+    constructor() {
+      this.youtubeApiReady = false;
+      this.youtubePlayerLoaded = false;
+      this.startedPlaying = false;
+      this.db = new IeeeVisDb(this.onData.bind(this));
+      this.initYoutube();
+      this.db.loadData();
     }
     initYoutube() {
       const tag = document.createElement("script");
@@ -38,14 +52,7 @@
       playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
     }
     onPlayerStateChange() {
-      if (!this.startedPlaying) {
-        this.startedPlaying = true;
-        this.player.pauseVideo();
-        setTimeout(() => {
-        }, 1e3);
-      } else {
-        this.player.playVideo();
-      }
+      this.player.playVideo();
     }
     loadYoutubePlayer() {
       this.youtubePlayerLoaded = true;
@@ -68,15 +75,13 @@
         }
       });
     }
-    loadData() {
-      var trackRef = firebase.database().ref("tracks/track1");
-      trackRef.on("value", (snapshot) => {
-        const lastYtId = this.getCurrentYtId();
-        this.data = snapshot.val();
-        if (this.getCurrentYtId() != lastYtId) {
-          this.updateVideo();
-        }
-      });
+    onData(track) {
+      const lastYtId = this.getCurrentYtId();
+      this.data = track;
+      document.getElementById("track-title").innerText = this.data.name;
+      if (this.getCurrentYtId() != lastYtId) {
+        this.updateVideo();
+      }
     }
     updateVideo() {
       if (!this.data || !this.getCurrentYtId() || !this.youtubeApiReady) {

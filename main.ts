@@ -1,4 +1,7 @@
-declare var firebase;
+import {Track} from "./track";
+import {YoutubePlayer} from "./youtubeplayer";
+import {IeeeVisDb} from "./ieeevisdb";
+
 declare var YT;
 
 class IeeeVisStream {
@@ -6,6 +9,7 @@ class IeeeVisStream {
 
     data: Track;
     player: YoutubePlayer;
+    db: IeeeVisDb;
 
     youtubeApiReady = false;
     youtubePlayerLoaded = false;
@@ -13,25 +17,9 @@ class IeeeVisStream {
     startedPlaying = false;
 
     constructor() {
-        this.initFirebase();
+        this.db = new IeeeVisDb(this.onData.bind(this));
         this.initYoutube();
-        this.loadData();
-    }
-
-    initFirebase() {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCfFQ-eN52od55QBFZatFImgZgEDHK_P4E",
-            authDomain: "ieeevis.firebaseapp.com",
-            databaseURL: "https://ieeevis-default-rtdb.firebaseio.com",
-            projectId: "ieeevis",
-            storageBucket: "ieeevis.appspot.com",
-            messagingSenderId: "542997735159",
-            appId: "1:542997735159:web:6d9624111ec276a61fd5f2",
-            measurementId: "G-SNC8VC6RFM"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
+        this.db.loadData();
     }
 
     initYoutube() {
@@ -56,17 +44,7 @@ class IeeeVisStream {
     onPlayerStateChange() {
         //document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID).style.pointerEvents = 'none';
 
-        if(!this.startedPlaying) {
-            this.startedPlaying = true;
-            this.player.pauseVideo();
-            setTimeout(() => {
-                /*this.player.seekTo(this.getCurrentStartTimeS(), false);
-                this.player.playVideo();*/
-                //this.changeYoutubeVideo();
-            }, 1000);
-        } else {
-            this.player.playVideo();
-        }
+        this.player.playVideo();
     }
 
     loadYoutubePlayer() {
@@ -93,20 +71,15 @@ class IeeeVisStream {
         });
     }
 
-    // Loads chat messages history and listens for upcoming ones.
-    loadData() {
-        // Create the query to load the last 12 messages and listen for new ones.
-        //var query = firebase.firestore().data("tracks.track1");
-        var trackRef = firebase.database().ref('tracks/track1');
+    onData(track: Track) {
+        const lastYtId = this.getCurrentYtId();
+        this.data = track;
 
-        trackRef.on('value', (snapshot) => {
-            const lastYtId = this.getCurrentYtId();
-            this.data = snapshot.val() as Track;
+        document.getElementById('track-title').innerText = this.data.name;
 
-            if(this.getCurrentYtId() != lastYtId) {
-                this.updateVideo();
-            }
-        });
+        if(this.getCurrentYtId() != lastYtId) {
+            this.updateVideo();
+        }
     }
 
     updateVideo() {
@@ -144,32 +117,6 @@ class IeeeVisStream {
         console.log(Math.round((timeMs - videoStartTimestampMs) / 1000) + videoStartTimeS, videoStartTimestampMs, videoStartTimeS);
         return Math.round((timeMs - videoStartTimestampMs) / 1000) + videoStartTimeS;
     }
-}
-
-interface Track {
-    name: string;
-    currentStatus: {
-        status: "online"|"offline";
-        videoIndex: number;
-        videoStartTime: number;
-        videoStartTimestamp: number;
-    };
-    videos: {
-        [index: string]: {
-            title: string;
-            type: "prerecorded"|"live";
-            youtubeId: string;
-        }
-    };
-}
-
-interface YoutubePlayer {
-    playVideo: () => void;
-    pauseVideo: () => void;
-    loadVideoById: (videoId: string, something?: number, size?: string) => void;
-    mute: () => void;
-    unMute: () => void;
-    seekTo: (timeS: number, allowSeekAhead: boolean) => void;
 }
 
 const stream = new IeeeVisStream();
