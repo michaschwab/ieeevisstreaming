@@ -62,14 +62,17 @@
       }
     }
     previousVideo() {
-      const nextIndex = this.data.currentStatus.videoIndex - 1;
-      this.db.set("currentStatus/videoIndex", nextIndex);
-      this.db.set("currentStatus/videoStartTimestamp", new Date().getTime());
+      this.updateVideoIndex(this.data.currentStatus.videoIndex - 1);
     }
     nextVideo() {
-      const nextIndex = this.data.currentStatus.videoIndex + 1;
+      this.updateVideoIndex(this.data.currentStatus.videoIndex + 1);
+    }
+    updateVideoIndex(index) {
       this.db.set("currentStatus/videoStartTimestamp", new Date().getTime());
-      this.db.set("currentStatus/videoIndex", nextIndex);
+      this.db.set("currentStatus/videoIndex", index);
+      this.data.currentStatus.videoStartTimestamp = new Date().getTime();
+      this.data.currentStatus.videoIndex = index;
+      this.updateTable();
     }
   };
   var streamAdmin = new IeeeVisStreamAdmin();
