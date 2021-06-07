@@ -20,10 +20,13 @@
       firebase.analytics();
     }
     loadData() {
-      var trackRef = firebase.database().ref("tracks/track1");
-      trackRef.on("value", (snapshot) => {
+      this.trackRef = firebase.database().ref("tracks/track1");
+      this.trackRef.on("value", (snapshot) => {
         this.onData(snapshot.val());
       });
+    }
+    set(path, value) {
+      this.trackRef.child(path).set(value);
     }
   };
 

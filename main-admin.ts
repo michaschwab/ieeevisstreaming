@@ -10,23 +10,23 @@ class IeeeVisStreamAdmin {
     constructor() {
         this.db = new IeeeVisDb(this.onData.bind(this));
         this.db.loadData();
+
+        document.getElementById('previous-video-button').onclick = this.previousVideo.bind(this);
+        document.getElementById('next-video-button').onclick = this.nextVideo.bind(this);
+
+        setInterval(this.updateTable.bind(this), 1000);
     }
 
     onData(track: Track) {
         this.data = track;
 
         document.getElementById('track-title').innerText = this.data.name;
-
-        this.updateTable();
-
-        setInterval(this.updateTable.bind(this), 1000);
     }
 
     updateTable() {
         const tableBody = document.getElementById('videos-table-body') as HTMLTableElement;
         tableBody.innerHTML = '';
 
-        console.log(this.data.videos);
         const currentVideoPlayedMs = new Date().getTime() - this.data.currentStatus.videoStartTimestamp;
 
         for(const videoKey in this.data.videos) {
@@ -37,10 +37,22 @@ class IeeeVisStreamAdmin {
 
             const tr = document.createElement('tr');
             tr.className = active ? 'active' : '';
-            tr.innerHTML = `<td>${video.title}</td><td>${video.type}</td><td>${timePlayed}</td>`;
+            tr.innerHTML = `<td><a href="https://www.youtube.com/watch?v=${video.youtubeId}" target="_blank">${video.title}</a></td><td>${video.type}</td><td>${timePlayed}</td>`;
 
             tableBody.append(tr);
         }
+    }
+
+    previousVideo() {
+        const nextIndex = this.data.currentStatus.videoIndex - 1;
+        this.db.set('currentStatus/videoIndex', nextIndex);
+        this.db.set('currentStatus/videoStartTimestamp', new Date().getTime());
+    }
+
+    nextVideo() {
+        const nextIndex = this.data.currentStatus.videoIndex + 1;
+        this.db.set('currentStatus/videoIndex', nextIndex);
+        this.db.set('currentStatus/videoStartTimestamp', new Date().getTime());
     }
 }
 

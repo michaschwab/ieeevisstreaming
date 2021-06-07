@@ -3,6 +3,8 @@ import {Track} from "./track";
 declare var firebase;
 
 export class IeeeVisDb {
+    private trackRef: FirebaseRef;
+
     constructor(private onData: (track: Track) => void) {
         this.initFirebase();
     }
@@ -24,12 +26,20 @@ export class IeeeVisDb {
     }
 
     loadData() {
-        // Create the query to load the last 12 messages and listen for new ones.
-        //var query = firebase.firestore().data("tracks.track1");
-        var trackRef = firebase.database().ref('tracks/track1');
+        this.trackRef = firebase.database().ref('tracks/track1') as FirebaseRef;
 
-        trackRef.on('value', (snapshot) => {
+        this.trackRef.on('value', (snapshot) => {
             this.onData(snapshot.val() as Track);
         });
     }
+
+    set(path: string, value: string|number) {
+        this.trackRef.child(path).set(value);
+    }
+}
+
+interface FirebaseRef {
+    child: (childName: string) => FirebaseRef;
+    set: (value: string|number) => void;
+    on: (event: "value", cb: (data: any) => void) => void;
 }
