@@ -68,8 +68,8 @@
     }
     nextVideo() {
       const nextIndex = this.data.currentStatus.videoIndex + 1;
-      this.db.set("currentStatus/videoIndex", nextIndex);
       this.db.set("currentStatus/videoStartTimestamp", new Date().getTime());
+      this.db.set("currentStatus/videoIndex", nextIndex);
     }
   };
   var streamAdmin = new IeeeVisStreamAdmin();

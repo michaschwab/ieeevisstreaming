@@ -1,5 +1,5 @@
 import {Track} from "./track";
-import {YoutubePlayer} from "./youtubeplayer";
+import {PlayerState, YoutubePlayer} from "./youtubeplayer";
 import {IeeeVisDb} from "./ieeevisdb";
 
 declare var YT;
@@ -13,8 +13,7 @@ class IeeeVisStream {
 
     youtubeApiReady = false;
     youtubePlayerLoaded = false;
-
-    startedPlaying = false;
+    youtubePlayerReady = false;
 
     constructor() {
         this.db = new IeeeVisDb(this.onData.bind(this));
@@ -35,16 +34,20 @@ class IeeeVisStream {
 
     onPlayerReady() {
         console.log('player ready', this.player);
+        this.youtubePlayerReady = true;
 
         // Autoplay
         const playerIframe = document.getElementById('ytplayer') as HTMLIFrameElement;
         playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
     }
 
-    onPlayerStateChange() {
+    onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
         //document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID).style.pointerEvents = 'none';
 
-        this.player.playVideo();
+        if(state.data === PlayerState.PAUSED) {
+            this.player.playVideo();
+            this.player.seekTo(this.getCurrentStartTimeS(), true);
+        }
     }
 
     loadYoutubePlayer() {
@@ -95,8 +98,6 @@ class IeeeVisStream {
     }
 
     changeYoutubeVideo() {
-        console.log('change yt vid');
-
         this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
         this.player.playVideo();
     }
@@ -110,12 +111,15 @@ class IeeeVisStream {
     }
 
     getCurrentStartTimeS() {
-        const timeMs = new Date().getTime();
-        const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-        const videoStartTimeS = this.data?.currentStatus?.videoStartTime;
+        if(this.getCurrentVideo().type === 'prerecorded' || !this.youtubePlayerReady) {
+            const timeMs = new Date().getTime();
+            const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
+            const videoStartTimeS = this.data?.currentStatus?.videoStartTime;
 
-        console.log(Math.round((timeMs - videoStartTimestampMs) / 1000) + videoStartTimeS, videoStartTimestampMs, videoStartTimeS);
-        return Math.round((timeMs - videoStartTimestampMs) / 1000) + videoStartTimeS;
+            return Math.round((timeMs - videoStartTimestampMs) / 1000) + videoStartTimeS;
+        } else if(this.getCurrentVideo().type === 'live') {
+            return this.player.getDuration();
+        }
     }
 }
 

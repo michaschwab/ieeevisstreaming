@@ -1,4 +1,15 @@
 (() => {
+  // youtubeplayer.ts
+  var PlayerState;
+  (function(PlayerState2) {
+    PlayerState2[PlayerState2["UNSTARTED"] = -1] = "UNSTARTED";
+    PlayerState2[PlayerState2["ENDED"] = 0] = "ENDED";
+    PlayerState2[PlayerState2["PLAYING"] = 1] = "PLAYING";
+    PlayerState2[PlayerState2["PAUSED"] = 2] = "PAUSED";
+    PlayerState2[PlayerState2["BUFFERING"] = 3] = "BUFFERING";
+    PlayerState2[PlayerState2["CUED"] = 5] = "CUED";
+  })(PlayerState || (PlayerState = {}));
+
   // ieeevisdb.ts
   var IeeeVisDb = class {
     constructor(onData) {
@@ -35,7 +46,7 @@
     constructor() {
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
-      this.startedPlaying = false;
+      this.youtubePlayerReady = false;
       this.db = new IeeeVisDb(this.onData.bind(this));
       this.initYoutube();
       this.db.loadData();
@@ -51,11 +62,15 @@
     }
     onPlayerReady() {
       console.log("player ready", this.player);
+      this.youtubePlayerReady = true;
       const playerIframe = document.getElementById("ytplayer");
       playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
     }
-    onPlayerStateChange() {
-      this.player.playVideo();
+    onPlayerStateChange(state) {
+      if (state.data === PlayerState.PAUSED) {
+        this.player.playVideo();
+        this.player.seekTo(this.getCurrentStartTimeS(), true);
+      }
     }
     loadYoutubePlayer() {
       this.youtubePlayerLoaded = true;
@@ -97,7 +112,6 @@
       }
     }
     changeYoutubeVideo() {
-      console.log("change yt vid");
       this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
       this.player.playVideo();
     }
@@ -108,11 +122,14 @@
       return this.getCurrentVideo()?.youtubeId;
     }
     getCurrentStartTimeS() {
-      const timeMs = new Date().getTime();
-      const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-      const videoStartTimeS = this.data?.currentStatus?.videoStartTime;
-      console.log(Math.round((timeMs - videoStartTimestampMs) / 1e3) + videoStartTimeS, videoStartTimestampMs, videoStartTimeS);
-      return Math.round((timeMs - videoStartTimestampMs) / 1e3) + videoStartTimeS;
+      if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
+        const timeMs = new Date().getTime();
+        const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
+        const videoStartTimeS = this.data?.currentStatus?.videoStartTime;
+        return Math.round((timeMs - videoStartTimestampMs) / 1e3) + videoStartTimeS;
+      } else if (this.getCurrentVideo().type === "live") {
+        return this.player.getDuration();
+      }
     }
   };
   var IeeeVisStream = _IeeeVisStream;
