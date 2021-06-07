@@ -51,9 +51,13 @@
         const video = this.data.videos[videoKey];
         const active = this.data.currentStatus.videoIndex.toString() === videoKey;
         const timePlayed = !active ? "-" : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
+        const ytUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
         const tr = document.createElement("tr");
         tr.className = active ? "active" : "";
-        tr.innerHTML = `<td><a href="https://www.youtube.com/watch?v=${video.youtubeId}" target="_blank">${video.title}</a></td><td>${video.type}</td><td>${timePlayed}</td>`;
+        tr.innerHTML = `
+                <td><a href=${ytUrl}" target="_blank">${video.title}</a></td>
+                <td>${video.type}</td>
+                <td>${timePlayed}</td>`;
         tableBody.append(tr);
       }
     }
