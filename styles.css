@@ -1,2 +1,27 @@
 /*
 #ytplayer {pointer-events: none;}*/
+
+td, th {
+    padding: 8px 12px;
+}
+thead tr {
+    background: #fcfcfc;
+}
+tr {
+    background: #f8f8f8;
+}
+tr.active {
+    background: #eee;
+}
+/*
+tr:nth-child(even) {
+    background: #eee;
+}
+tr:nth-child(odd) {
+    background: #f8f8f8;
+}*/
+
+button {
+    margin: 20px 10px;
+    padding: 10px 15px;
+}
