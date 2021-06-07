@@ -1,0 +1,16 @@
+{
+  "name": "vis-streaming",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.ts",
+  "dependencies": {
+    "esbuild": "^0.11.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "./node_modules/.bin/esbuild main.ts --bundle --outfile=bundle.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
