@@ -47,9 +47,16 @@
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
+      this.width = window.innerWidth;
+      this.height = window.innerHeight - 100;
+      this.CHAT_WIDTH_PERCENT = 30;
+      this.CHAT_PADDING_LEFT_PX = 20;
+      this.GATHERTOWN_HEIGHT_PERCENT = 40;
       this.db = new IeeeVisDb(this.onData.bind(this));
       this.initYoutube();
       this.db.loadData();
+      this.loadDiscord();
+      this.loadGathertown();
     }
     initYoutube() {
       const tag = document.createElement("script");
@@ -84,8 +91,8 @@
     loadYoutubePlayer() {
       this.youtubePlayerLoaded = true;
       this.player = new YT.Player(_IeeeVisStream.PLAYER_ELEMENT_ID, {
-        height: "600",
-        width: "1000",
+        width: this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100,
+        height: this.height * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
         videoId: this.getCurrentYtId(),
         playerVars: {
           "playsinline": 1,
@@ -101,6 +108,22 @@
           "onStateChange": this.onPlayerStateChange.bind(this)
         }
       });
+    }
+    loadDiscord() {
+      const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=851543400461107241"
+                              width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
+                              height="${this.height}"
+                              frameborder="0"></iframe>`;
+      document.getElementById("wrapper").innerHTML += html;
+    }
+    loadGathertown() {
+      const html = `<iframe title="gather town"
+                              width="${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}"
+                              height="${this.height * this.GATHERTOWN_HEIGHT_PERCENT / 100}"
+                              allow="camera;microphone"
+                              src="https://gather.town/app/NCPq3ewRqxrhEGTe/vis21-demo-test"></iframe>`;
+      document.getElementById("yt-gathertown").style.width = `${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}px`;
+      document.getElementById("yt-gathertown").innerHTML += html;
     }
     onData(track) {
       const lastYtId = this.getCurrentYtId();
@@ -134,7 +157,6 @@
       if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
         const timeMs = new Date().getTime();
         const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-        console.log(Math.round((timeMs - videoStartTimestampMs) / 1e3), timeMs, videoStartTimestampMs);
         return Math.round((timeMs - videoStartTimestampMs) / 1e3);
       } else if (this.getCurrentVideo().type === "live") {
         return this.player.getDuration();
