@@ -63,16 +63,22 @@
     onPlayerReady() {
       console.log("player ready", this.player);
       this.youtubePlayerReady = true;
-      const playerIframe = document.getElementById("ytplayer");
-      playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
+      this.playerIframe = document.getElementById("ytplayer");
+      this.playerIframe.setAttribute("allow", "accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
+      this.playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
     }
     onPlayerStateChange(state) {
       if (state.data === PlayerState.UNSTARTED) {
         this.player.seekTo(this.getCurrentStartTimeS(), true);
       }
       if (state.data === PlayerState.PAUSED) {
-        this.player.playVideo();
-        this.player.seekTo(this.getCurrentStartTimeS(), true);
+      }
+      if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
+        const startTime = this.getCurrentStartTimeS();
+        const currentTime = this.player.getCurrentTime();
+        if (Math.abs(startTime - currentTime) > 10) {
+          this.player.seekTo(this.getCurrentStartTimeS(), true);
+        }
       }
     }
     loadYoutubePlayer() {
@@ -80,7 +86,7 @@
       this.player = new YT.Player(_IeeeVisStream.PLAYER_ELEMENT_ID, {
         height: "600",
         width: "1000",
-        videoId: this.getCurrentYtId() + "?autoplay=1",
+        videoId: this.getCurrentYtId(),
         playerVars: {
           "playsinline": 1,
           "autoplay": 1,

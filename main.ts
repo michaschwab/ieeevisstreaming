@@ -6,6 +6,7 @@ declare var YT;
 
 class IeeeVisStream {
     static PLAYER_ELEMENT_ID = 'ytplayer';
+    private playerIframe: HTMLIFrameElement;
 
     data: Track;
     player: YoutubePlayer;
@@ -37,8 +38,10 @@ class IeeeVisStream {
         this.youtubePlayerReady = true;
 
         // Autoplay
-        const playerIframe = document.getElementById('ytplayer') as HTMLIFrameElement;
-        playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        this.playerIframe = document.getElementById('ytplayer') as HTMLIFrameElement;
+        this.playerIframe.setAttribute('allow', "accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
+
+        this.playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
     }
 
     onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
@@ -50,8 +53,19 @@ class IeeeVisStream {
         }
 
         if(state.data === PlayerState.PAUSED) {
-            this.player.playVideo();
-            this.player.seekTo(this.getCurrentStartTimeS(), true);
+            //this.player.playVideo();
+            //this.player.seekTo(this.getCurrentStartTimeS(), true);
+        }
+
+        if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
+            const startTime = this.getCurrentStartTimeS();
+            const currentTime = this.player.getCurrentTime();
+
+            if(Math.abs(startTime - currentTime) > 10) { // if more than this delay, move to current spot.
+                // TODO: need to make sure we don't end up infinitely looping people here that have a bad connection,
+                // e.g. if they need more than 10s to buffer.
+                this.player.seekTo(this.getCurrentStartTimeS(), true);
+            }
         }
     }
 
@@ -61,7 +75,7 @@ class IeeeVisStream {
         this.player = new YT.Player(IeeeVisStream.PLAYER_ELEMENT_ID, {
             height: '600',
             width: '1000',
-            videoId: this.getCurrentYtId() + "?autoplay=1",
+            videoId: this.getCurrentYtId(),
 
             playerVars: {
                 'playsinline': 1,

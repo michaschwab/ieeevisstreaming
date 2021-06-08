@@ -6,6 +6,7 @@ export interface YoutubePlayer {
     unMute: () => void;
     seekTo: (timeS: number, allowSeekAhead: boolean) => void;
     getDuration: () => number;
+    getCurrentTime: () => number;
 }
 
 export enum PlayerState {
