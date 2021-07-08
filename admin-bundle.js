@@ -30,11 +30,31 @@
     }
   };
 
+  // auth.ts
+  var IeeeVisAuth = class {
+    constructor() {
+      this.initFirebaseUi();
+    }
+    initFirebaseUi() {
+      var uiConfig = {
+        signInSuccessUrl: "http://localhost:8080/admin",
+        signInOptions: [
+          firebase.auth.GoogleAuthProvider.PROVIDER_ID
+        ],
+        tosUrl: "",
+        privacyPolicyUrl: ""
+      };
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      ui.start("#firebaseui-auth-container", uiConfig);
+    }
+  };
+
   // main-admin.ts
   var IeeeVisStreamAdmin = class {
     constructor() {
       this.db = new IeeeVisDb(this.onData.bind(this));
       this.db.loadData();
+      new IeeeVisAuth();
       document.getElementById("previous-video-button").onclick = this.previousVideo.bind(this);
       document.getElementById("next-video-button").onclick = this.nextVideo.bind(this);
       setInterval(this.updateTable.bind(this), 1e3);
@@ -44,6 +64,9 @@
       document.getElementById("track-title").innerText = this.data.name;
     }
     updateTable() {
+      if (!this.data) {
+        return;
+      }
       const tableBody = document.getElementById("videos-table-body");
       tableBody.innerHTML = "";
       const currentVideoPlayedMs = new Date().getTime() - this.data.currentStatus.videoStartTimestamp;
@@ -79,3 +102,4 @@
   };
   var streamAdmin = new IeeeVisStreamAdmin();
 })();
+//# sourceMappingURL=admin-bundle.js.map

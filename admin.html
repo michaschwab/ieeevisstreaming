@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.css" />
 <link href="styles.css" rel="stylesheet" />
 <body>
 
 <h2>Admin Panel:</h2>
 <h1 id="track-title"></h1>
+
+<div id="firebaseui-auth-container"></div>
 
 <div id="videos">
 
@@ -52,6 +55,8 @@ eventually, think about logs
      https://firebase.google.com/docs/web/setup#available-libraries -->
 <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js"></script>
 
 <script src="admin-bundle.js"></script>
 </body>
