@@ -30,3 +30,7 @@ button {
     display: flex;
     justify-content: space-between;
 }
+
+#slido-frame {
+    /*margin-top: -100px;*/
+}

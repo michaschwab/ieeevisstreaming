@@ -58,6 +58,7 @@ class IeeeVisStreamAdmin {
     }
 
     nextVideo() {
+        //TODO: don't allow going past the number of vids.
         this.updateVideoIndex(this.data.currentStatus.videoIndex + 1);
     }
 

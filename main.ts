@@ -108,9 +108,9 @@ class IeeeVisStream {
     loadDiscord() {
         const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=851543400461107241"
                               width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
-                              height="${this.height}"
+                              height="${this.height - 400}"
                               frameborder="0"></iframe>`;
-        document.getElementById('wrapper').innerHTML += html;
+        document.getElementById('discord-wrap').innerHTML += html;
     }
 
     loadGathertown() {
