@@ -52,11 +52,13 @@
       this.CHAT_WIDTH_PERCENT = 30;
       this.CHAT_PADDING_LEFT_PX = 20;
       this.GATHERTOWN_HEIGHT_PERCENT = 40;
+      this.lastForcedSeek = 0;
       this.db = new IeeeVisDb(this.onData.bind(this));
       this.initYoutube();
       this.db.loadData();
       this.loadDiscord();
       this.loadGathertown();
+      console.log(this);
     }
     initYoutube() {
       const tag = document.createElement("script");
@@ -70,7 +72,7 @@
     onPlayerReady() {
       console.log("player ready", this.player);
       this.youtubePlayerReady = true;
-      this.playerIframe = document.getElementById("ytplayer");
+      this.playerIframe = document.getElementById(_IeeeVisStream.PLAYER_ELEMENT_ID);
       this.playerIframe.setAttribute("allow", "accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
       this.playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
     }
@@ -83,8 +85,10 @@
       if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
         const startTime = this.getCurrentStartTimeS();
         const currentTime = this.player.getCurrentTime();
-        if (Math.abs(startTime - currentTime) > 10) {
+        if (Math.abs(startTime - currentTime) > 5 && Date.now() - this.lastForcedSeek > 1e4) {
           this.player.seekTo(this.getCurrentStartTimeS(), true);
+          console.log("lagging behind. seek.", this.getCurrentStartTimeS(), this.player.getCurrentTime());
+          this.lastForcedSeek = Date.now();
         }
       }
     }
@@ -146,6 +150,7 @@
     changeYoutubeVideo() {
       this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
       this.player.playVideo();
+      this.lastForcedSeek = 0;
     }
     getCurrentVideo() {
       return this.data?.videos[this.data?.currentStatus?.videoIndex];
@@ -170,3 +175,4 @@
     stream.onYouTubeIframeAPIReady();
   };
 })();
+//# sourceMappingURL=bundle.js.map

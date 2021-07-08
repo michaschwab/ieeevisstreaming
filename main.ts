@@ -30,6 +30,7 @@ class IeeeVisStream {
 
         this.loadDiscord();
         this.loadGathertown();
+        console.log(this);
     }
 
     initYoutube() {
@@ -48,11 +49,13 @@ class IeeeVisStream {
         this.youtubePlayerReady = true;
 
         // Autoplay
-        this.playerIframe = document.getElementById('ytplayer') as HTMLIFrameElement;
+        this.playerIframe = document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID) as HTMLIFrameElement;
         this.playerIframe.setAttribute('allow', "accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
 
         this.playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
     }
+
+    lastForcedSeek = 0;
 
     onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
         //document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID).style.pointerEvents = 'none';
@@ -70,11 +73,10 @@ class IeeeVisStream {
         if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
             const startTime = this.getCurrentStartTimeS();
             const currentTime = this.player.getCurrentTime();
-
-            if(Math.abs(startTime - currentTime) > 10) { // if more than this delay, move to current spot.
-                // TODO: need to make sure we don't end up infinitely looping people here that have a bad connection,
-                // e.g. if they need more than 10s to buffer.
+            if(Math.abs(startTime - currentTime) > 5 && Date.now() - this.lastForcedSeek > 10000) {
                 this.player.seekTo(this.getCurrentStartTimeS(), true);
+                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player.getCurrentTime());
+                this.lastForcedSeek = Date.now();
             }
         }
     }
@@ -148,6 +150,7 @@ class IeeeVisStream {
         // The seeking in the following line does not work for 0 (see workaround above).
         this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
         this.player.playVideo();
+        this.lastForcedSeek = 0;
     }
 
     getCurrentVideo() {
