@@ -1,5 +1,6 @@
 import {Track} from "./track";
 import {IeeeVisDb} from "./ieeevisdb";
+import {IeeeVisAuth} from "./auth";
 
 declare var YT;
 
@@ -10,6 +11,8 @@ class IeeeVisStreamAdmin {
     constructor() {
         this.db = new IeeeVisDb(this.onData.bind(this));
         this.db.loadData();
+
+        new IeeeVisAuth();
 
         document.getElementById('previous-video-button').onclick = this.previousVideo.bind(this);
         document.getElementById('next-video-button').onclick = this.nextVideo.bind(this);
@@ -24,6 +27,10 @@ class IeeeVisStreamAdmin {
     }
 
     updateTable() {
+        if(!this.data) {
+            return;
+        }
+
         const tableBody = document.getElementById('videos-table-body') as HTMLTableElement;
         tableBody.innerHTML = '';
 
