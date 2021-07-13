@@ -6,11 +6,11 @@ declare var YT;
 
 class IeeeVisStream {
     static PLAYER_ELEMENT_ID = 'ytplayer';
-    private playerIframe: HTMLIFrameElement;
 
     data: Track;
     player: YoutubePlayer;
     db: IeeeVisDb;
+    audioContext = new AudioContext();
 
     youtubeApiReady = false;
     youtubePlayerLoaded = false;
@@ -30,7 +30,6 @@ class IeeeVisStream {
 
         this.loadDiscord();
         this.loadGathertown();
-        console.log(this);
     }
 
     initYoutube() {
@@ -48,26 +47,18 @@ class IeeeVisStream {
         console.log('player ready', this.player);
         this.youtubePlayerReady = true;
 
-        // Autoplay
-        this.playerIframe = document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID) as HTMLIFrameElement;
-        this.playerIframe.setAttribute('allow', "accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
-
-        this.playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        if(this.audioContext.state === "suspended") {
+            this.player.mute();
+        }
+        this.player.playVideo();
     }
 
     lastForcedSeek = 0;
 
     onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
-        //document.getElementById(IeeeVisStream.PLAYER_ELEMENT_ID).style.pointerEvents = 'none';
-
         if(state.data === PlayerState.UNSTARTED) {
             // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
             this.player.seekTo(this.getCurrentStartTimeS(), true);
-        }
-
-        if(state.data === PlayerState.PAUSED) {
-            //this.player.playVideo();
-            //this.player.seekTo(this.getCurrentStartTimeS(), true);
         }
 
         if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {

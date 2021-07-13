@@ -44,6 +44,7 @@
   // main.ts
   var _IeeeVisStream = class {
     constructor() {
+      this.audioContext = new AudioContext();
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
@@ -58,7 +59,6 @@
       this.db.loadData();
       this.loadDiscord();
       this.loadGathertown();
-      console.log(this);
     }
     initYoutube() {
       const tag = document.createElement("script");
@@ -72,15 +72,14 @@
     onPlayerReady() {
       console.log("player ready", this.player);
       this.youtubePlayerReady = true;
-      this.playerIframe = document.getElementById(_IeeeVisStream.PLAYER_ELEMENT_ID);
-      this.playerIframe.setAttribute("allow", "accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
-      this.playerIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
+      if (this.audioContext.state === "suspended") {
+        this.player.mute();
+      }
+      this.player.playVideo();
     }
     onPlayerStateChange(state) {
       if (state.data === PlayerState.UNSTARTED) {
         this.player.seekTo(this.getCurrentStartTimeS(), true);
-      }
-      if (state.data === PlayerState.PAUSED) {
       }
       if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
         const startTime = this.getCurrentStartTimeS();
