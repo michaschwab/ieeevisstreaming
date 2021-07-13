@@ -3,16 +3,34 @@
 <link href="styles.css" rel="stylesheet" />
 <body>
 
-<h1 id="track-title"></h1>
+<div id="header">
+    <h1 id="track-title"></h1>
+</div>
+
 <div id="wrapper">
-    <div id="yt-gathertown">
-        <div id="ytplayer"></div>
-    </div>
-    <div id="slido-discord-wrap">
-        <div id="slido-wrap">
-            <iframe id="slido-frame" src="https://app.sli.do/event/atwoyv5u" height="100%" width="100%" frameBorder="0" style="min-height: 400px;" title="Slido"></iframe>
+    <div id="content">
+        <div id="youtube-outer">
+            <header>Video</header>
+            <div id="ytplayer"></div>
         </div>
-        <div id="discord-wrap"></div>
+        <div id="gathertown-outer">
+            <header>Gathertown</header>
+            <div id="gathertown"></div>
+        </div>
+    </div>
+    <div id="sidepanel">
+        <header id="panel-header">
+            <ul>
+                <li><a id="discord-tab-link" class="active">Discord</a></li>
+                <li><a id="slido-tab-link">Slido</a></li>
+            </ul>
+        </header>
+        <div class="panel-tab-contents">
+            <div id="slido-wrap" class="">
+                <iframe id="slido-frame" src="https://app.sli.do/event/atwoyv5u" height="100%" width="100%" frameBorder="0" style="min-height: 400px;" title="Slido"></iframe>
+            </div>
+            <div id="discord-wrap" class="active"></div>
+        </div>
     </div>
 </div>
 

@@ -49,16 +49,19 @@
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
       this.width = window.innerWidth;
-      this.height = window.innerHeight - 100;
-      this.CHAT_WIDTH_PERCENT = 30;
+      this.height = window.innerHeight - 120;
+      this.CHAT_WIDTH_PERCENT = 40;
       this.CHAT_PADDING_LEFT_PX = 20;
       this.GATHERTOWN_HEIGHT_PERCENT = 40;
+      this.currentPanelTab = "discord";
       this.lastForcedSeek = 0;
       this.db = new IeeeVisDb(this.onData.bind(this));
       this.initYoutube();
       this.db.loadData();
       this.loadDiscord();
+      this.loadSlido();
       this.loadGathertown();
+      this.initPanelTabs();
     }
     initYoutube() {
       const tag = document.createElement("script");
@@ -95,7 +98,7 @@
       this.youtubePlayerLoaded = true;
       this.player = new YT.Player(_IeeeVisStream.PLAYER_ELEMENT_ID, {
         width: this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100,
-        height: this.height * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
+        height: (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
         videoId: this.getCurrentYtId(),
         playerVars: {
           "playsinline": 1,
@@ -115,18 +118,25 @@
     loadDiscord() {
       const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=851543400461107241"
                               width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
-                              height="${this.height - 400}"
+                              height="${this.height - _IeeeVisStream.HEADERS_HEIGHT}"
                               frameborder="0"></iframe>`;
       document.getElementById("discord-wrap").innerHTML += html;
+    }
+    loadSlido() {
+      const frame = document.getElementById("slido-frame");
+      frame.setAttribute("width", `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
+      frame.setAttribute("height", `${this.height - _IeeeVisStream.HEADERS_HEIGHT}`);
     }
     loadGathertown() {
       const html = `<iframe title="gather town"
                               width="${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}"
-                              height="${this.height * this.GATHERTOWN_HEIGHT_PERCENT / 100}"
+                              height="${(this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * this.GATHERTOWN_HEIGHT_PERCENT / 100}"
                               allow="camera;microphone"
                               src="https://gather.town/app/NCPq3ewRqxrhEGTe/vis21-demo-test"></iframe>`;
-      document.getElementById("yt-gathertown").style.width = `${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}px`;
-      document.getElementById("yt-gathertown").innerHTML += html;
+      const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
+      contentWrap.style.width = `${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}px`;
+      const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
+      gatherWrap.innerHTML = html;
     }
     onData(track) {
       const lastYtId = this.getCurrentYtId();
@@ -166,9 +176,27 @@
         return this.player.getDuration();
       }
     }
+    initPanelTabs() {
+      const getToggle = (tabName) => () => {
+        console.log(tabName);
+        this.currentPanelTab = tabName;
+        document.getElementById("discord-tab-link").className = "";
+        document.getElementById("slido-tab-link").className = "";
+        document.getElementById(`${tabName}-tab-link`).className = "active";
+        document.getElementById("discord-wrap").className = "";
+        document.getElementById("slido-wrap").className = "";
+        document.getElementById(`${tabName}-wrap`).className = "active";
+      };
+      document.getElementById("discord-tab-link").onclick = getToggle("discord");
+      document.getElementById("slido-tab-link").onclick = getToggle("slido");
+    }
   };
   var IeeeVisStream = _IeeeVisStream;
   IeeeVisStream.PLAYER_ELEMENT_ID = "ytplayer";
+  IeeeVisStream.CONTENT_WRAPPER_ID = "content";
+  IeeeVisStream.GATHERTOWN_WRAPPER_ID = "gathertown";
+  IeeeVisStream.PANEL_HEADER_ID = "panel-header";
+  IeeeVisStream.HEADERS_HEIGHT = 30;
   var stream = new IeeeVisStream();
   onYouTubeIframeAPIReady = () => {
     stream.onYouTubeIframeAPIReady();
