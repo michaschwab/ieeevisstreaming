@@ -132,7 +132,7 @@
                               width="${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}"
                               height="${(this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * this.GATHERTOWN_HEIGHT_PERCENT / 100}"
                               allow="camera;microphone"
-                              src="https://gather.town/app/NCPq3ewRqxrhEGTe/vis21-demo-test"></iframe>`;
+                              src="https://gather.town/app/aDeS7vVGW5A2wuF5/vis21-tech2"></iframe>`;
       const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
       contentWrap.style.width = `${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}px`;
       const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
