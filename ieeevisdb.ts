@@ -11,14 +11,12 @@ export class IeeeVisDb {
 
     initFirebase() {
         const firebaseConfig = {
-            apiKey: "AIzaSyCfFQ-eN52od55QBFZatFImgZgEDHK_P4E",
-            authDomain: "ieeevis.firebaseapp.com",
-            databaseURL: "https://ieeevis-default-rtdb.firebaseio.com",
-            projectId: "ieeevis",
-            storageBucket: "ieeevis.appspot.com",
-            messagingSenderId: "542997735159",
-            appId: "1:542997735159:web:6d9624111ec276a61fd5f2",
-            measurementId: "G-SNC8VC6RFM"
+            apiKey: "AIzaSyD2GFrQJM0w0eK85jjfANn1BUdlv3CJVvc",
+            authDomain: "vis21-viewer-test.firebaseapp.com",
+            projectId: "vis21-viewer-test",
+            storageBucket: "vis21-viewer-test.appspot.com",
+            messagingSenderId: "1047491864011",
+            appId: "1:1047491864011:web:9af419c7eeec148e44824e"
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);

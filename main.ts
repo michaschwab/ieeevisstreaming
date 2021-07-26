@@ -20,6 +20,9 @@ class IeeeVisStream {
     youtubePlayerLoaded = false;
     youtubePlayerReady = false;
 
+    slidoLoaded = false;
+    discordLoaded = false;
+
     width = window.innerWidth;
     height = window.innerHeight - 120; // 80px for title
 
@@ -35,8 +38,6 @@ class IeeeVisStream {
         this.initYoutube();
         this.db.loadData();
 
-        this.loadDiscord();
-        this.loadSlido();
         this.loadGathertown();
         this.initPanelTabs();
     }
@@ -106,7 +107,8 @@ class IeeeVisStream {
     }
 
     loadDiscord() {
-        const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=851543400461107241"
+        this.discordLoaded = true;
+        const html = `<iframe src="https://titanembeds.com/embed/${this.getDiscordGuildId()}?defaultchannel=${this.getDiscordChannelId()}"
                               width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
                               height="${this.height - IeeeVisStream.HEADERS_HEIGHT}"
                               frameborder="0"></iframe>`;
@@ -114,9 +116,15 @@ class IeeeVisStream {
     }
 
     loadSlido() {
-        const frame = document.getElementById('slido-frame');
-        frame.setAttribute('width', `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
-        frame.setAttribute('height', `${this.height - IeeeVisStream.HEADERS_HEIGHT}`);
+        this.slidoLoaded = true;
+        const html = `<iframe id="slido-frame"
+                        src="https://app.sli.do/event/${this.getSlidoURL()}"
+                        width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
+                        height="${this.height - IeeeVisStream.HEADERS_HEIGHT}"
+                        frameBorder="0"
+                        style="min-height: 400px;"
+                        title="Slido"></iframe>`;
+        document.getElementById('slido-wrap').innerHTML += html;
     }
 
     loadGathertown() {
@@ -136,6 +144,13 @@ class IeeeVisStream {
     onData(track: Track) {
         const lastYtId = this.getCurrentYtId();
         this.data = track;
+        
+        if (!this.discordLoaded) {
+            this.loadDiscord();
+        }
+        if (!this.slidoLoaded) {
+            this.loadSlido();
+        }
 
         document.getElementById('track-title').innerText = this.data.name;
 
@@ -180,6 +195,18 @@ class IeeeVisStream {
         } else if(this.getCurrentVideo().type === 'live') {
             return this.player.getDuration();
         }
+    }
+
+    getSlidoURL() {
+        return this.data?.slido;
+    }
+
+    getDiscordGuildId() {
+        return this.data?.discordGuildId; 
+    }
+
+    getDiscordChannelId() {
+        return this.data?.discordChannelId; 
     }
 
     initPanelTabs() {

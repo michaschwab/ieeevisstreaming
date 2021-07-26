@@ -12,4 +12,7 @@ export interface Track {
             youtubeId: string;
         }
     };
+    slido: string;
+    discordGuildId: string;
+    discordChannelId: string;
 }
