@@ -1,15 +1,18 @@
-
 export interface Track {
     name: string;
-    currentStatus: {
-        videoIndex: number;
-        videoStartTimestamp: number;
-    };
+    currentStatus: VideoStatus;
     videos: {
-        [index: string]: {
-            title: string;
-            type: "prerecorded"|"live";
-            youtubeId: string;
-        }
+        [index: string]: Video;
     };
+}
+
+export interface VideoStatus {
+    videoIndex: number;
+    videoStartTimestamp: number;
+}
+
+export interface Video {
+    title: string;
+    type: "prerecorded"|"live";
+    youtubeId: string;
 }

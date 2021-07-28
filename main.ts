@@ -1,8 +1,7 @@
-import {Track} from "./track";
-import {PlayerState, YoutubePlayer} from "./youtubeplayer";
+import {Track, Video} from "./track";
 import {IeeeVisDb} from "./ieeevisdb";
+import {IeeeVisVideoPlayer} from "./videoplayer";
 
-declare var YT;
 type PANEL_TAB = "slido" | "discord";
 
 class IeeeVisStream {
@@ -12,13 +11,8 @@ class IeeeVisStream {
     static PANEL_HEADER_ID = 'panel-header';
 
     data: Track;
-    player: YoutubePlayer;
+    player: IeeeVisVideoPlayer;
     db: IeeeVisDb;
-    audioContext = new AudioContext();
-
-    youtubeApiReady = false;
-    youtubePlayerLoaded = false;
-    youtubePlayerReady = false;
 
     width = window.innerWidth;
     height = window.innerHeight - 120; // 80px for title
@@ -32,7 +26,12 @@ class IeeeVisStream {
 
     constructor() {
         this.db = new IeeeVisDb(this.onData.bind(this));
-        this.initYoutube();
+        this.player = new IeeeVisVideoPlayer(IeeeVisStream.PLAYER_ELEMENT_ID,
+            this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100,
+            (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
+            this.getCurrentVideo.bind(this),
+            this.getCurrentVideoId.bind(this),
+            () => this.data?.currentStatus);
         this.db.loadData();
 
         this.loadDiscord();
@@ -41,68 +40,8 @@ class IeeeVisStream {
         this.initPanelTabs();
     }
 
-    initYoutube() {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    }
-
     onYouTubeIframeAPIReady() {
-        this.youtubeApiReady = true;
-    }
-
-    onPlayerReady() {
-        console.log('player ready', this.player);
-        this.youtubePlayerReady = true;
-
-        if(this.audioContext.state === "suspended") {
-            this.player.mute();
-        }
-        this.player.playVideo();
-    }
-
-    lastForcedSeek = 0;
-
-    onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
-        if(state.data === PlayerState.UNSTARTED) {
-            // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
-            this.player.seekTo(this.getCurrentStartTimeS(), true);
-        }
-
-        if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
-            const startTime = this.getCurrentStartTimeS();
-            const currentTime = this.player.getCurrentTime();
-            if(Math.abs(startTime - currentTime) > 5 && Date.now() - this.lastForcedSeek > 10000) {
-                this.player.seekTo(this.getCurrentStartTimeS(), true);
-                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player.getCurrentTime());
-                this.lastForcedSeek = Date.now();
-            }
-        }
-    }
-
-    loadYoutubePlayer() {
-        this.youtubePlayerLoaded = true;
-
-        this.player = new YT.Player(IeeeVisStream.PLAYER_ELEMENT_ID, {
-            width: this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100,
-            height: (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
-            videoId: this.getCurrentYtId(),
-
-            playerVars: {
-                'playsinline': 1,
-                'autoplay': 1,
-                'controls': 1,
-                'rel': 0,
-                'modestbranding': 1,
-                'mute': 0,
-                start: this.getCurrentStartTimeS(),
-            },
-            events: {
-                'onReady': this.onPlayerReady.bind(this),
-                'onStateChange': this.onPlayerStateChange.bind(this),
-            }
-        });
+        this.player.onYouTubeIframeAPIReady();
     }
 
     loadDiscord() {
@@ -134,52 +73,22 @@ class IeeeVisStream {
     }
 
     onData(track: Track) {
-        const lastYtId = this.getCurrentYtId();
+        const lastYtId = this.getCurrentVideoId();
         this.data = track;
 
         document.getElementById('track-title').innerText = this.data.name;
 
-        if(this.getCurrentYtId() != lastYtId) {
-            this.updateVideo();
+        if(this.getCurrentVideoId() != lastYtId) {
+            this.player.updateVideo();
         }
     }
 
-    updateVideo() {
-        if(!this.data || !this.getCurrentYtId() || !this.youtubeApiReady) {
-            return;
-        }
-
-        if(!this.youtubePlayerLoaded) {
-            this.loadYoutubePlayer();
-        } else {
-            this.changeYoutubeVideo();
-        }
-    }
-
-    changeYoutubeVideo() {
-        // The seeking in the following line does not work for 0 (see workaround above).
-        this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
-        this.player.playVideo();
-        this.lastForcedSeek = 0;
-    }
-
-    getCurrentVideo() {
+    getCurrentVideo(): Video {
         return this.data?.videos[this.data?.currentStatus?.videoIndex];
     }
 
-    getCurrentYtId() {
+    getCurrentVideoId() {
         return this.getCurrentVideo()?.youtubeId;
-    }
-
-    getCurrentStartTimeS() {
-        if(this.getCurrentVideo().type === 'prerecorded' || !this.youtubePlayerReady) {
-            const timeMs = new Date().getTime();
-            const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-
-            return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        } else if(this.getCurrentVideo().type === 'live') {
-            return this.player.getDuration();
-        }
     }
 
     initPanelTabs() {
@@ -198,7 +107,6 @@ class IeeeVisStream {
 
         document.getElementById('discord-tab-link').onclick = getToggle('discord');
         document.getElementById('slido-tab-link').onclick = getToggle('slido');
-
     }
 }
 

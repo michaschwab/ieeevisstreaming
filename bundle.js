@@ -1,15 +1,4 @@
 (() => {
-  // youtubeplayer.ts
-  var PlayerState;
-  (function(PlayerState2) {
-    PlayerState2[PlayerState2["UNSTARTED"] = -1] = "UNSTARTED";
-    PlayerState2[PlayerState2["ENDED"] = 0] = "ENDED";
-    PlayerState2[PlayerState2["PLAYING"] = 1] = "PLAYING";
-    PlayerState2[PlayerState2["PAUSED"] = 2] = "PAUSED";
-    PlayerState2[PlayerState2["BUFFERING"] = 3] = "BUFFERING";
-    PlayerState2[PlayerState2["CUED"] = 5] = "CUED";
-  })(PlayerState || (PlayerState = {}));
-
   // ieeevisdb.ts
   var IeeeVisDb = class {
     constructor(onData) {
@@ -41,36 +30,41 @@
     }
   };
 
-  // main.ts
-  var _IeeeVisStream = class {
-    constructor() {
+  // youtubeplayer.ts
+  var PlayerState;
+  (function(PlayerState2) {
+    PlayerState2[PlayerState2["UNSTARTED"] = -1] = "UNSTARTED";
+    PlayerState2[PlayerState2["ENDED"] = 0] = "ENDED";
+    PlayerState2[PlayerState2["PLAYING"] = 1] = "PLAYING";
+    PlayerState2[PlayerState2["PAUSED"] = 2] = "PAUSED";
+    PlayerState2[PlayerState2["BUFFERING"] = 3] = "BUFFERING";
+    PlayerState2[PlayerState2["CUED"] = 5] = "CUED";
+  })(PlayerState || (PlayerState = {}));
+
+  // videoplayer.ts
+  var IeeeVisVideoPlayer = class {
+    constructor(elementId, width, height, getCurrentVideo, getCurrentVideoId, getCurrentVideoStatus) {
+      this.elementId = elementId;
+      this.width = width;
+      this.height = height;
+      this.getCurrentVideo = getCurrentVideo;
+      this.getCurrentVideoId = getCurrentVideoId;
+      this.getCurrentVideoStatus = getCurrentVideoStatus;
       this.audioContext = new AudioContext();
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
-      this.width = window.innerWidth;
-      this.height = window.innerHeight - 120;
-      this.CHAT_WIDTH_PERCENT = 40;
-      this.CHAT_PADDING_LEFT_PX = 20;
-      this.GATHERTOWN_HEIGHT_PERCENT = 40;
-      this.currentPanelTab = "discord";
       this.lastForcedSeek = 0;
-      this.db = new IeeeVisDb(this.onData.bind(this));
-      this.initYoutube();
-      this.db.loadData();
-      this.loadDiscord();
-      this.loadSlido();
-      this.loadGathertown();
-      this.initPanelTabs();
+      this.init();
     }
-    initYoutube() {
+    onYouTubeIframeAPIReady() {
+      this.youtubeApiReady = true;
+    }
+    init() {
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
       const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    }
-    onYouTubeIframeAPIReady() {
-      this.youtubeApiReady = true;
     }
     onPlayerReady() {
       console.log("player ready", this.player);
@@ -96,10 +90,10 @@
     }
     loadYoutubePlayer() {
       this.youtubePlayerLoaded = true;
-      this.player = new YT.Player(_IeeeVisStream.PLAYER_ELEMENT_ID, {
-        width: this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100,
-        height: (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
-        videoId: this.getCurrentYtId(),
+      this.player = new YT.Player(this.elementId, {
+        width: this.width,
+        height: this.height,
+        videoId: this.getCurrentVideoId(),
         playerVars: {
           "playsinline": 1,
           "autoplay": 1,
@@ -114,6 +108,52 @@
           "onStateChange": this.onPlayerStateChange.bind(this)
         }
       });
+    }
+    updateVideo() {
+      if (!this.getCurrentVideoId() || !this.youtubeApiReady) {
+        return;
+      }
+      if (!this.youtubePlayerLoaded) {
+        this.loadYoutubePlayer();
+      } else {
+        this.changeYoutubeVideo();
+      }
+    }
+    changeYoutubeVideo() {
+      this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
+      this.player.playVideo();
+      this.lastForcedSeek = 0;
+    }
+    getCurrentStartTimeS() {
+      if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
+        const timeMs = new Date().getTime();
+        const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp;
+        return Math.round((timeMs - videoStartTimestampMs) / 1e3);
+      } else if (this.getCurrentVideo().type === "live") {
+        return this.player.getDuration();
+      }
+    }
+  };
+
+  // main.ts
+  var _IeeeVisStream = class {
+    constructor() {
+      this.width = window.innerWidth;
+      this.height = window.innerHeight - 120;
+      this.CHAT_WIDTH_PERCENT = 40;
+      this.CHAT_PADDING_LEFT_PX = 20;
+      this.GATHERTOWN_HEIGHT_PERCENT = 40;
+      this.currentPanelTab = "discord";
+      this.db = new IeeeVisDb(this.onData.bind(this));
+      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100, (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.data?.currentStatus);
+      this.db.loadData();
+      this.loadDiscord();
+      this.loadSlido();
+      this.loadGathertown();
+      this.initPanelTabs();
+    }
+    onYouTubeIframeAPIReady() {
+      this.player.onYouTubeIframeAPIReady();
     }
     loadDiscord() {
       const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=851543400461107241"
@@ -139,42 +179,18 @@
       gatherWrap.innerHTML = html;
     }
     onData(track) {
-      const lastYtId = this.getCurrentYtId();
+      const lastYtId = this.getCurrentVideoId();
       this.data = track;
       document.getElementById("track-title").innerText = this.data.name;
-      if (this.getCurrentYtId() != lastYtId) {
-        this.updateVideo();
+      if (this.getCurrentVideoId() != lastYtId) {
+        this.player.updateVideo();
       }
-    }
-    updateVideo() {
-      if (!this.data || !this.getCurrentYtId() || !this.youtubeApiReady) {
-        return;
-      }
-      if (!this.youtubePlayerLoaded) {
-        this.loadYoutubePlayer();
-      } else {
-        this.changeYoutubeVideo();
-      }
-    }
-    changeYoutubeVideo() {
-      this.player.loadVideoById(this.getCurrentYtId(), this.getCurrentStartTimeS());
-      this.player.playVideo();
-      this.lastForcedSeek = 0;
     }
     getCurrentVideo() {
       return this.data?.videos[this.data?.currentStatus?.videoIndex];
     }
-    getCurrentYtId() {
+    getCurrentVideoId() {
       return this.getCurrentVideo()?.youtubeId;
-    }
-    getCurrentStartTimeS() {
-      if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
-        const timeMs = new Date().getTime();
-        const videoStartTimestampMs = this.data?.currentStatus?.videoStartTimestamp;
-        return Math.round((timeMs - videoStartTimestampMs) / 1e3);
-      } else if (this.getCurrentVideo().type === "live") {
-        return this.player.getDuration();
-      }
     }
     initPanelTabs() {
       const getToggle = (tabName) => () => {
