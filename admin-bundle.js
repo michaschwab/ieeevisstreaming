@@ -1,12 +1,13 @@
 (() => {
   // ieeevisdb.ts
   var IeeeVisDb = class {
-    constructor(onData) {
+    constructor(SESSION_ID, onData) {
+      this.SESSION_ID = SESSION_ID;
       this.onData = onData;
       this.initFirebase();
     }
     initFirebase() {
-      const firebaseConfig = {
+      firebase.initializeApp({
         apiKey: "AIzaSyCfFQ-eN52od55QBFZatFImgZgEDHK_P4E",
         authDomain: "ieeevis.firebaseapp.com",
         databaseURL: "https://ieeevis-default-rtdb.firebaseio.com",
@@ -15,18 +16,17 @@
         messagingSenderId: "542997735159",
         appId: "1:542997735159:web:6d9624111ec276a61fd5f2",
         measurementId: "G-SNC8VC6RFM"
-      };
-      firebase.initializeApp(firebaseConfig);
+      });
       firebase.analytics();
     }
     loadData() {
-      this.trackRef = firebase.database().ref("tracks/track1");
-      this.trackRef.on("value", (snapshot) => {
+      this.sessionRef = firebase.database().ref("sessions/" + this.SESSION_ID);
+      this.sessionRef.on("value", (snapshot) => {
         this.onData(snapshot.val());
       });
     }
     set(path, value) {
-      this.trackRef.child(path).set(value);
+      this.sessionRef.child(path).set(value);
     }
   };
 
@@ -50,9 +50,9 @@
   };
 
   // main-admin.ts
-  var IeeeVisStreamAdmin = class {
+  var _IeeeVisStreamAdmin = class {
     constructor() {
-      this.db = new IeeeVisDb(this.onData.bind(this));
+      this.db = new IeeeVisDb(_IeeeVisStreamAdmin.SESSION_ID, this.onData.bind(this));
       this.db.loadData();
       new IeeeVisAuth();
       document.getElementById("previous-video-button").onclick = this.previousVideo.bind(this);
@@ -100,6 +100,8 @@
       this.updateTable();
     }
   };
+  var IeeeVisStreamAdmin = _IeeeVisStreamAdmin;
+  IeeeVisStreamAdmin.SESSION_ID = location.search.substr(location.search.indexOf("session=") + "session=".length);
   var streamAdmin = new IeeeVisStreamAdmin();
 })();
 //# sourceMappingURL=admin-bundle.js.map

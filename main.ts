@@ -1,4 +1,4 @@
-import {Track, Video} from "./track";
+import {Session, Video} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisVideoPlayer} from "./videoplayer";
 
@@ -9,8 +9,9 @@ class IeeeVisStream {
     static CONTENT_WRAPPER_ID = 'content';
     static GATHERTOWN_WRAPPER_ID = 'gathertown';
     static PANEL_HEADER_ID = 'panel-header';
+    static SESSION_ID = location.search.substr(location.search.indexOf('session=') + 'session='.length);
 
-    data: Track;
+    data: Session;
     player: IeeeVisVideoPlayer;
     db: IeeeVisDb;
 
@@ -25,7 +26,8 @@ class IeeeVisStream {
     currentPanelTab: PANEL_TAB = "discord";
 
     constructor() {
-        this.db = new IeeeVisDb(this.onData.bind(this));
+        console.log(IeeeVisStream.SESSION_ID);
+        this.db = new IeeeVisDb(IeeeVisStream.SESSION_ID, this.onData.bind(this));
         this.player = new IeeeVisVideoPlayer(IeeeVisStream.PLAYER_ELEMENT_ID,
             this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100,
             (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100,
@@ -72,9 +74,9 @@ class IeeeVisStream {
         gatherWrap.innerHTML = html;
     }
 
-    onData(track: Track) {
+    onData(session: Session) {
         const lastYtId = this.getCurrentVideoId();
-        this.data = track;
+        this.data = session;
 
         document.getElementById('track-title').innerText = this.data.name;
 

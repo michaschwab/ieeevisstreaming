@@ -1,16 +1,16 @@
-import {Track} from "./track";
+import {Session} from "./session";
 
 declare var firebase;
 
 export class IeeeVisDb {
-    private trackRef: FirebaseRef;
+    private sessionRef: FirebaseRef;
 
-    constructor(private onData: (track: Track) => void) {
+    constructor(private SESSION_ID: string, private onData: (session: Session) => void) {
         this.initFirebase();
     }
 
     initFirebase() {
-        const firebaseConfig = {
+        firebase.initializeApp({
             apiKey: "AIzaSyCfFQ-eN52od55QBFZatFImgZgEDHK_P4E",
             authDomain: "ieeevis.firebaseapp.com",
             databaseURL: "https://ieeevis-default-rtdb.firebaseio.com",
@@ -19,22 +19,20 @@ export class IeeeVisDb {
             messagingSenderId: "542997735159",
             appId: "1:542997735159:web:6d9624111ec276a61fd5f2",
             measurementId: "G-SNC8VC6RFM"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        });
         firebase.analytics();
     }
 
     loadData() {
-        this.trackRef = firebase.database().ref('tracks/track1') as FirebaseRef;
+        this.sessionRef = firebase.database().ref('sessions/' + this.SESSION_ID) as FirebaseRef;
 
-        this.trackRef.on('value', (snapshot) => {
-            this.onData(snapshot.val() as Track);
+        this.sessionRef.on('value', (snapshot) => {
+            this.onData(snapshot.val() as Session);
         });
     }
 
     set(path: string, value: string|number|{}) {
-        this.trackRef.child(path).set(value);
+        this.sessionRef.child(path).set(value);
     }
 }
 

@@ -1,4 +1,4 @@
-import {Track} from "./track";
+import {Session} from "./session";
 
 declare var firebase;
 declare var firebaseui;

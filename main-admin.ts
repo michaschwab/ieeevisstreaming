@@ -1,15 +1,17 @@
-import {Track} from "./track";
+import {Session} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisAuth} from "./auth";
 
 declare var YT;
 
 class IeeeVisStreamAdmin {
-    data: Track;
+    data: Session;
     db: IeeeVisDb;
 
+    static SESSION_ID = location.search.substr(location.search.indexOf('session=') + 'session='.length);
+
     constructor() {
-        this.db = new IeeeVisDb(this.onData.bind(this));
+        this.db = new IeeeVisDb(IeeeVisStreamAdmin.SESSION_ID, this.onData.bind(this));
         this.db.loadData();
 
         new IeeeVisAuth();
@@ -20,7 +22,7 @@ class IeeeVisStreamAdmin {
         setInterval(this.updateTable.bind(this), 1000);
     }
 
-    onData(track: Track) {
+    onData(track: Session) {
         this.data = track;
 
         document.getElementById('track-title').innerText = this.data.name;

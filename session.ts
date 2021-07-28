@@ -1,4 +1,4 @@
-export interface Track {
+export interface Session {
     name: string;
     currentStatus: VideoStatus;
     videos: {

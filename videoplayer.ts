@@ -1,5 +1,5 @@
 import {PlayerState, YoutubePlayer} from "./youtubeplayer";
-import {Video, VideoStatus} from "./track";
+import {Video, VideoStatus} from "./session";
 
 declare var YT;
 

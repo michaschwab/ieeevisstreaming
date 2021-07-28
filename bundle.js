@@ -1,12 +1,13 @@
 (() => {
   // ieeevisdb.ts
   var IeeeVisDb = class {
-    constructor(onData) {
+    constructor(SESSION_ID, onData) {
+      this.SESSION_ID = SESSION_ID;
       this.onData = onData;
       this.initFirebase();
     }
     initFirebase() {
-      const firebaseConfig = {
+      firebase.initializeApp({
         apiKey: "AIzaSyCfFQ-eN52od55QBFZatFImgZgEDHK_P4E",
         authDomain: "ieeevis.firebaseapp.com",
         databaseURL: "https://ieeevis-default-rtdb.firebaseio.com",
@@ -15,18 +16,17 @@
         messagingSenderId: "542997735159",
         appId: "1:542997735159:web:6d9624111ec276a61fd5f2",
         measurementId: "G-SNC8VC6RFM"
-      };
-      firebase.initializeApp(firebaseConfig);
+      });
       firebase.analytics();
     }
     loadData() {
-      this.trackRef = firebase.database().ref("tracks/track1");
-      this.trackRef.on("value", (snapshot) => {
+      this.sessionRef = firebase.database().ref("sessions/" + this.SESSION_ID);
+      this.sessionRef.on("value", (snapshot) => {
         this.onData(snapshot.val());
       });
     }
     set(path, value) {
-      this.trackRef.child(path).set(value);
+      this.sessionRef.child(path).set(value);
     }
   };
 
@@ -144,7 +144,8 @@
       this.CHAT_PADDING_LEFT_PX = 20;
       this.GATHERTOWN_HEIGHT_PERCENT = 40;
       this.currentPanelTab = "discord";
-      this.db = new IeeeVisDb(this.onData.bind(this));
+      console.log(_IeeeVisStream.SESSION_ID);
+      this.db = new IeeeVisDb(_IeeeVisStream.SESSION_ID, this.onData.bind(this));
       this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100, (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.data?.currentStatus);
       this.db.loadData();
       this.loadDiscord();
@@ -178,9 +179,9 @@
       const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
       gatherWrap.innerHTML = html;
     }
-    onData(track) {
+    onData(session) {
       const lastYtId = this.getCurrentVideoId();
-      this.data = track;
+      this.data = session;
       document.getElementById("track-title").innerText = this.data.name;
       if (this.getCurrentVideoId() != lastYtId) {
         this.player.updateVideo();
@@ -212,6 +213,7 @@
   IeeeVisStream.CONTENT_WRAPPER_ID = "content";
   IeeeVisStream.GATHERTOWN_WRAPPER_ID = "gathertown";
   IeeeVisStream.PANEL_HEADER_ID = "panel-header";
+  IeeeVisStream.SESSION_ID = location.search.substr(location.search.indexOf("session=") + "session=".length);
   IeeeVisStream.HEADERS_HEIGHT = 30;
   var stream = new IeeeVisStream();
   onYouTubeIframeAPIReady = () => {
