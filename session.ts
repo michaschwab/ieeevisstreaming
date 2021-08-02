@@ -1,6 +1,8 @@
 export interface Session {
     name: string;
     currentStatus: VideoStatus;
+    discord: string;
+    slido: string;
     videos: {
         [index: string]: Video;
     };

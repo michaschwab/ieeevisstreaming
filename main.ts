@@ -36,8 +36,6 @@ class IeeeVisStream {
             () => this.data?.currentStatus);
         this.db.loadData();
 
-        this.loadDiscord();
-        this.loadSlido();
         this.loadGathertown();
         this.initPanelTabs();
     }
@@ -47,7 +45,7 @@ class IeeeVisStream {
     }
 
     loadDiscord() {
-        const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=851543400461107241"
+        const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.data.discord}"
                               width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
                               height="${this.height - IeeeVisStream.HEADERS_HEIGHT}"
                               frameborder="0"></iframe>`;
@@ -56,6 +54,7 @@ class IeeeVisStream {
 
     loadSlido() {
         const frame = document.getElementById('slido-frame');
+        frame.setAttribute('src', `https://app.sli.do/event/${this.data.slido}`);
         frame.setAttribute('width', `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
         frame.setAttribute('height', `${this.height - IeeeVisStream.HEADERS_HEIGHT}`);
     }
@@ -75,6 +74,7 @@ class IeeeVisStream {
     }
 
     onData(session: Session) {
+        const initializing = this.data === null || this.data === undefined;
         const lastYtId = this.getCurrentVideoId();
         this.data = session;
 
@@ -82,6 +82,11 @@ class IeeeVisStream {
 
         if(this.getCurrentVideoId() != lastYtId) {
             this.player.updateVideo();
+        }
+
+        if(initializing) {
+            this.loadDiscord();
+            this.loadSlido();
         }
     }
 
