@@ -1,6 +1,6 @@
 export interface Session {
     name: string;
-    currentStatus: VideoStatus;
+    currentStatus: SessionStatus;
     discord: string;
     slido: string;
     videos: {
@@ -8,7 +8,8 @@ export interface Session {
     };
 }
 
-export interface VideoStatus {
+export interface SessionStatus {
+    state: SessionState;
     videoIndex: number;
     videoStartTimestamp: number;
 }
@@ -17,4 +18,10 @@ export interface Video {
     title: string;
     type: "prerecorded"|"live";
     youtubeId: string;
+}
+
+export enum SessionState {
+    "WATCHING",
+    "QA",
+    "SOCIALIZING"
 }

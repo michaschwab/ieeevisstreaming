@@ -1,5 +1,5 @@
 import {PlayerState, YoutubePlayer} from "./youtubeplayer";
-import {Video, VideoStatus} from "./session";
+import {Video, SessionStatus} from "./session";
 
 declare var YT;
 
@@ -16,7 +16,7 @@ export class IeeeVisVideoPlayer {
                 private height: number,
                 private getCurrentVideo: () => Video,
                 private getCurrentVideoId: () => string,
-                private getCurrentVideoStatus: () => VideoStatus) {
+                private getCurrentVideoStatus: () => SessionStatus) {
         this.init();
     }
 
