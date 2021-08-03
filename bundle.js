@@ -54,7 +54,6 @@
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
-      this.lastForcedSeek = 0;
       this.init();
     }
     onYouTubeIframeAPIReady() {
@@ -81,10 +80,9 @@
       if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
         const startTime = this.getCurrentStartTimeS();
         const currentTime = this.player.getCurrentTime();
-        if (Math.abs(startTime - currentTime) > 5 && Date.now() - this.lastForcedSeek > 1e4) {
+        if (Math.abs(startTime - currentTime) > 5) {
           this.player.seekTo(this.getCurrentStartTimeS(), true);
           console.log("lagging behind. seek.", this.getCurrentStartTimeS(), this.player.getCurrentTime());
-          this.lastForcedSeek = Date.now();
         }
       }
     }
@@ -122,7 +120,6 @@
     changeYoutubeVideo() {
       this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
       this.player.playVideo();
-      this.lastForcedSeek = 0;
     }
     getCurrentStartTimeS() {
       if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {

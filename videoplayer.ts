@@ -41,9 +41,6 @@ export class IeeeVisVideoPlayer {
         this.player.playVideo();
     }
 
-
-    lastForcedSeek = 0;
-
     onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
         if(state.data === PlayerState.UNSTARTED) {
             // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
@@ -53,10 +50,9 @@ export class IeeeVisVideoPlayer {
         if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
             const startTime = this.getCurrentStartTimeS();
             const currentTime = this.player.getCurrentTime();
-            if(Math.abs(startTime - currentTime) > 5 && Date.now() - this.lastForcedSeek > 10000) {
+            if(Math.abs(startTime - currentTime) > 5) {
                 this.player.seekTo(this.getCurrentStartTimeS(), true);
                 console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player.getCurrentTime());
-                this.lastForcedSeek = Date.now();
             }
         }
     }
@@ -101,7 +97,6 @@ export class IeeeVisVideoPlayer {
         // The seeking in the following line does not work for 0 (see workaround above).
         this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
         this.player.playVideo();
-        this.lastForcedSeek = 0;
     }
 
     getCurrentStartTimeS() {
