@@ -70,6 +70,7 @@ class IeeeVisStream {
         this.data = session;
 
         document.getElementById('track-title').innerText = this.data.name;
+        document.getElementById('video-name').innerText = this.getCurrentVideo()?.title;
 
         if(this.getCurrentVideoId() != lastYtId) {
             this.player.updateVideo();
