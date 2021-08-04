@@ -49,7 +49,8 @@ class IeeeVisStreamAdmin {
             tr.innerHTML = `
                 <td><a href=${ytUrl}" target="_blank">${video.title}</a></td>
                 <td>${video.type}</td>
-                <td>${timePlayed}</td>`;
+                <td>${timePlayed}</td>
+                <td>${video.state}</td>`;
 
             tableBody.append(tr);
         }
