@@ -8,6 +8,7 @@ export interface YoutubePlayer {
     seekTo: (timeS: number, allowSeekAhead: boolean) => void;
     getDuration: () => number;
     getCurrentTime: () => number;
+    setSize(width: number, height: number): void;
 }
 
 export enum PlayerState {

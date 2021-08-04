@@ -43,14 +43,14 @@
 
   // videoplayer.ts
   var IeeeVisVideoPlayer = class {
-    constructor(elementId, width, height, getCurrentVideo, getCurrentVideoId, getCurrentVideoStatus) {
+    constructor(elementId, getCurrentVideo, getCurrentVideoId, getCurrentVideoStatus) {
       this.elementId = elementId;
-      this.width = width;
-      this.height = height;
       this.getCurrentVideo = getCurrentVideo;
       this.getCurrentVideoId = getCurrentVideoId;
       this.getCurrentVideoStatus = getCurrentVideoStatus;
       this.audioContext = new AudioContext();
+      this.width = 400;
+      this.height = 300;
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
@@ -58,6 +58,24 @@
     }
     onYouTubeIframeAPIReady() {
       this.youtubeApiReady = true;
+    }
+    updateVideo() {
+      if (!this.getCurrentVideoId() || !this.youtubeApiReady) {
+        return;
+      }
+      if (!this.youtubePlayerLoaded) {
+        this.loadYoutubePlayer();
+      } else {
+        this.changeYoutubeVideo();
+      }
+    }
+    setSize(width, height) {
+      this.width = width;
+      this.height = height;
+      if (!this.player) {
+        return;
+      }
+      this.player.setSize(width, height);
     }
     init() {
       const tag = document.createElement("script");
@@ -107,16 +125,6 @@
         }
       });
     }
-    updateVideo() {
-      if (!this.getCurrentVideoId() || !this.youtubeApiReady) {
-        return;
-      }
-      if (!this.youtubePlayerLoaded) {
-        this.loadYoutubePlayer();
-      } else {
-        this.changeYoutubeVideo();
-      }
-    }
     changeYoutubeVideo() {
       this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
       this.player.playVideo();
@@ -136,42 +144,36 @@
   var _IeeeVisStream = class {
     constructor() {
       this.width = window.innerWidth;
-      this.height = window.innerHeight - 120;
+      this.height = window.innerHeight;
       this.CHAT_WIDTH_PERCENT = 40;
       this.CHAT_PADDING_LEFT_PX = 20;
-      this.GATHERTOWN_HEIGHT_PERCENT = 40;
       this.currentPanelTab = "discord";
-      console.log(_IeeeVisStream.SESSION_ID);
       this.db = new IeeeVisDb(_IeeeVisStream.SESSION_ID, this.onData.bind(this));
-      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100, (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - this.GATHERTOWN_HEIGHT_PERCENT) / 100, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.data?.currentStatus);
+      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.data?.currentStatus);
       this.db.loadData();
       this.loadGathertown();
       this.initPanelTabs();
+      this.resize();
+      window.addEventListener("resize", this.resize.bind(this));
     }
     onYouTubeIframeAPIReady() {
       this.player.onYouTubeIframeAPIReady();
     }
     loadDiscord() {
       const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.data.discord}"
-                              width="${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}"
-                              height="${this.height - _IeeeVisStream.HEADERS_HEIGHT}"
+                              id="discord-iframe"
                               frameborder="0"></iframe>`;
       document.getElementById("discord-wrap").innerHTML += html;
     }
     loadSlido() {
       const frame = document.getElementById("slido-frame");
       frame.setAttribute("src", `https://app.sli.do/event/${this.data.slido}`);
-      frame.setAttribute("width", `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
-      frame.setAttribute("height", `${this.height - _IeeeVisStream.HEADERS_HEIGHT}`);
     }
     loadGathertown() {
       const html = `<iframe title="gather town"
-                              width="${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}"
-                              height="${(this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * this.GATHERTOWN_HEIGHT_PERCENT / 100}"
                               allow="camera;microphone"
+                              id="gathertown-iframe"
                               src="https://gather.town/app/aDeS7vVGW5A2wuF5/vis21-tech2"></iframe>`;
-      const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
-      contentWrap.style.width = `${this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100}px`;
       const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
       gatherWrap.innerHTML = html;
     }
@@ -187,6 +189,7 @@
         this.loadDiscord();
         this.loadSlido();
       }
+      this.resize();
     }
     getCurrentVideo() {
       return this.data?.videos[this.data?.currentStatus?.videoIndex];
@@ -198,24 +201,54 @@
       const getToggle = (tabName) => () => {
         console.log(tabName);
         this.currentPanelTab = tabName;
-        document.getElementById("discord-tab-link").className = "";
-        document.getElementById("slido-tab-link").className = "";
-        document.getElementById(`${tabName}-tab-link`).className = "active";
-        document.getElementById("discord-wrap").className = "";
-        document.getElementById("slido-wrap").className = "";
-        document.getElementById(`${tabName}-wrap`).className = "active";
+        this.updatePanelTabs();
       };
       document.getElementById("discord-tab-link").onclick = getToggle("discord");
       document.getElementById("slido-tab-link").onclick = getToggle("slido");
+    }
+    updatePanelTabs() {
+      document.getElementById("discord-tab-link").className = "";
+      document.getElementById("slido-tab-link").className = "";
+      document.getElementById(`${this.currentPanelTab}-tab-link`).className = "active";
+      document.getElementById("discord-wrap").className = "";
+      document.getElementById("slido-wrap").className = "";
+      document.getElementById(`${this.currentPanelTab}-wrap`).className = "active";
+    }
+    resize() {
+      this.width = window.innerWidth;
+      this.height = window.innerHeight - 65;
+      const state = this.data?.currentStatus?.state;
+      const gathertownHeightPercent = state === "SOCIALIZING" ? 65 : 35;
+      const playerWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
+      const playerHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - gathertownHeightPercent) / 100;
+      this.player.setSize(playerWidth, playerHeight);
+      const gatherFrame = document.getElementById("gathertown-iframe");
+      const gatherWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
+      const gatherHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * gathertownHeightPercent / 100;
+      gatherFrame.setAttribute("width", `${gatherWidth}`);
+      gatherFrame.setAttribute("height", `${gatherHeight}`);
+      const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
+      contentWrap.style.width = `${gatherWidth}px`;
+      this.currentPanelTab = state === "QA" ? "slido" : "discord";
+      this.updatePanelTabs();
+      const slidoFrame = document.getElementById("slido-frame");
+      if (slidoFrame) {
+        slidoFrame.setAttribute("width", `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
+        slidoFrame.setAttribute("height", `${this.height - _IeeeVisStream.HEADERS_HEIGHT}`);
+      }
+      const discordFrame = document.getElementById("discord-iframe");
+      if (discordFrame) {
+        discordFrame.setAttribute("width", `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
+        discordFrame.setAttribute("height", `${this.height - _IeeeVisStream.HEADERS_HEIGHT}`);
+      }
     }
   };
   var IeeeVisStream = _IeeeVisStream;
   IeeeVisStream.PLAYER_ELEMENT_ID = "ytplayer";
   IeeeVisStream.CONTENT_WRAPPER_ID = "content";
   IeeeVisStream.GATHERTOWN_WRAPPER_ID = "gathertown";
-  IeeeVisStream.PANEL_HEADER_ID = "panel-header";
   IeeeVisStream.SESSION_ID = location.search.substr(location.search.indexOf("session=") + "session=".length);
-  IeeeVisStream.HEADERS_HEIGHT = 30;
+  IeeeVisStream.HEADERS_HEIGHT = 40;
   var stream = new IeeeVisStream();
   onYouTubeIframeAPIReady = () => {
     stream.onYouTubeIframeAPIReady();

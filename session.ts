@@ -20,8 +20,4 @@ export interface Video {
     youtubeId: string;
 }
 
-export enum SessionState {
-    "WATCHING",
-    "QA",
-    "SOCIALIZING"
-}
+export type SessionState = "WATCHING" | "QA" | "SOCIALIZING";

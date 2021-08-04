@@ -53,6 +53,9 @@ header {
     font-family: Arial;
     padding: 11px 20px;
 }
+#track-title {
+    margin: 0;
+}
 
 #panel-header {
     padding: 0 20px;
