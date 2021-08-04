@@ -217,7 +217,7 @@
     resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight - 65;
-      const state = this.data?.currentStatus?.state;
+      const state = this.getCurrentVideo()?.state;
       const gathertownHeightPercent = state === "SOCIALIZING" ? 65 : 35;
       const playerWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
       const playerHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - gathertownHeightPercent) / 100;

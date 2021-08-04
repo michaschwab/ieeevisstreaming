@@ -9,7 +9,6 @@ export interface Session {
 }
 
 export interface SessionStatus {
-    state: SessionState;
     videoIndex: number;
     videoStartTimestamp: number;
 }
@@ -18,6 +17,7 @@ export interface Video {
     title: string;
     type: "prerecorded"|"live";
     youtubeId: string;
+    state: SessionState;
 }
 
 export type SessionState = "WATCHING" | "QA" | "SOCIALIZING";
