@@ -70,7 +70,7 @@ header {
 #panel-header li a {
     display: block;
     padding: 8px 26px;
-    background: #f8f8f8;
+    background: #bbb;
     margin-right: 8px;
     margin-top: 5px;
     font-size: 16px;
@@ -80,11 +80,18 @@ header {
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
     cursor: pointer;
+    color: #fff;
 }
 
 #panel-header li a.active {
     cursor: default;
     pointer-events: none;
-    background: #bbb;
+    background: #fff;
+    color: #333;
+}
+
+/* Match Q&A header color with Slido */
+#panel-header li:nth-child(2) a.active {
+    background: #2A56A7;
     color: #fff;
 }
