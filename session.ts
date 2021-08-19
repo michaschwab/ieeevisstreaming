@@ -2,6 +2,7 @@ export interface Session {
     name: string;
     currentStatus: SessionStatus;
     discord: string;
+    rocketchat: string;
     slido: string;
     videos: {
         [index: string]: Video;

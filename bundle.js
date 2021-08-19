@@ -159,10 +159,11 @@
     onYouTubeIframeAPIReady() {
       this.player.onYouTubeIframeAPIReady();
     }
-    loadDiscord() {
-      const html = `<iframe src="https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.data.discord}"
-                              id="discord-iframe"
-                              frameborder="0"></iframe>`;
+    loadChat() {
+      const discordUrl = `https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.data.discord}`;
+      const rocketUrl = `https://chat.wushernet.com/channel/${this.data.rocketchat}?layout=embedded`;
+      const url = location.hash.indexOf("discord") === -1 ? rocketUrl : discordUrl;
+      const html = `<iframe src="${url}" id="discord-iframe" frameborder="0"></iframe>`;
       document.getElementById("discord-wrap").innerHTML += html;
     }
     loadSlido() {
@@ -187,7 +188,7 @@
         this.player.updateVideo();
       }
       if (initializing) {
-        this.loadDiscord();
+        this.loadChat();
         this.loadSlido();
       }
       this.resize();
