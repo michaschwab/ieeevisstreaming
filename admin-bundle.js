@@ -1,9 +1,7 @@
 (() => {
   // ieeevisdb.ts
   var IeeeVisDb = class {
-    constructor(SESSION_ID, onData) {
-      this.SESSION_ID = SESSION_ID;
-      this.onData = onData;
+    constructor() {
       this.initFirebase();
     }
     initFirebase() {
@@ -19,14 +17,20 @@
       });
       firebase.analytics();
     }
-    loadData() {
-      this.sessionRef = firebase.database().ref("sessions/" + this.SESSION_ID);
+    loadRoom(roomId, onRoomUpdated) {
+      const roomRef = firebase.database().ref("rooms/" + roomId);
+      roomRef.on("value", (snapshot) => {
+        onRoomUpdated(snapshot.val());
+      });
+    }
+    loadSession(sessionId2, onSessionUpdated) {
+      this.sessionRef = firebase.database().ref("sessions/" + sessionId2);
       this.sessionRef.on("value", (snapshot) => {
-        this.onData(snapshot.val());
+        onSessionUpdated(snapshot.val());
       });
     }
     set(path, value) {
-      this.sessionRef.child(path).set(value);
+      this.sessionRef?.child(path).set(value);
     }
   };
 
@@ -50,29 +54,30 @@
   };
 
   // main-admin.ts
-  var _IeeeVisStreamAdmin = class {
-    constructor() {
-      this.db = new IeeeVisDb(_IeeeVisStreamAdmin.SESSION_ID, this.onData.bind(this));
-      this.db.loadData();
+  var IeeeVisStreamAdmin = class {
+    constructor(SESSION_ID) {
+      this.SESSION_ID = SESSION_ID;
+      this.db = new IeeeVisDb();
+      this.db.loadSession(SESSION_ID, (session) => this.onSessionUpdated(session));
       new IeeeVisAuth();
       document.getElementById("previous-video-button").onclick = this.previousVideo.bind(this);
       document.getElementById("next-video-button").onclick = this.nextVideo.bind(this);
       setInterval(this.updateTable.bind(this), 1e3);
     }
-    onData(track) {
-      this.data = track;
-      document.getElementById("track-title").innerText = this.data.name;
+    onSessionUpdated(session) {
+      this.session = session;
+      document.getElementById("track-title").innerText = this.session.name;
     }
     updateTable() {
-      if (!this.data) {
+      if (!this.session) {
         return;
       }
       const tableBody = document.getElementById("videos-table-body");
       tableBody.innerHTML = "";
-      const currentVideoPlayedMs = new Date().getTime() - this.data.currentStatus.videoStartTimestamp;
-      for (const videoKey in this.data.videos) {
-        const video = this.data.videos[videoKey];
-        const active = this.data.currentStatus.videoIndex.toString() === videoKey;
+      const currentVideoPlayedMs = new Date().getTime() - this.session.currentStatus.videoStartTimestamp;
+      for (const videoKey in this.session.videos) {
+        const video = this.session.videos[videoKey];
+        const active = this.session.currentStatus.videoIndex.toString() === videoKey;
         const timePlayed = !active ? "-" : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
         const ytUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
         const tr = document.createElement("tr");
@@ -86,23 +91,28 @@
       }
     }
     previousVideo() {
-      this.updateVideoIndex(this.data.currentStatus.videoIndex - 1);
+      this.updateVideoIndex(this.session.currentStatus.videoIndex - 1);
     }
     nextVideo() {
-      this.updateVideoIndex(this.data.currentStatus.videoIndex + 1);
+      this.updateVideoIndex(this.session.currentStatus.videoIndex + 1);
     }
     updateVideoIndex(index) {
       this.db.set("currentStatus", {
         videoStartTimestamp: new Date().getTime(),
         videoIndex: index
       });
-      this.data.currentStatus.videoStartTimestamp = new Date().getTime();
-      this.data.currentStatus.videoIndex = index;
+      this.session.currentStatus.videoStartTimestamp = new Date().getTime();
+      this.session.currentStatus.videoIndex = index;
       this.updateTable();
     }
   };
-  var IeeeVisStreamAdmin = _IeeeVisStreamAdmin;
-  IeeeVisStreamAdmin.SESSION_ID = location.search.substr(location.search.indexOf("session=") + "session=".length);
-  var streamAdmin = new IeeeVisStreamAdmin();
+  var sessionId = location.search.indexOf("session=") === -1 ? "" : location.search.substr(location.search.indexOf("session=") + "session=".length);
+  console.log("session", sessionId);
+  if (sessionId) {
+    const streamAdmin = new IeeeVisStreamAdmin(sessionId);
+    document.getElementById("wrapper").style.display = "block";
+  } else {
+    document.getElementById("param-error").style.display = "block";
+  }
 })();
 //# sourceMappingURL=admin-bundle.js.map

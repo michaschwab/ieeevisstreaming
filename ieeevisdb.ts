@@ -1,11 +1,11 @@
-import {Session} from "./session";
+import {Room, Session} from "./session";
 
-declare var firebase;
+declare var firebase: Firebase;
 
 export class IeeeVisDb {
-    private sessionRef: FirebaseRef;
+    private sessionRef?: FirebaseRef;
 
-    constructor(private SESSION_ID: string, private onData: (session: Session) => void) {
+    constructor() {
         this.initFirebase();
     }
 
@@ -23,16 +23,24 @@ export class IeeeVisDb {
         firebase.analytics();
     }
 
-    loadData() {
-        this.sessionRef = firebase.database().ref('sessions/' + this.SESSION_ID) as FirebaseRef;
+    loadRoom(roomId: string, onRoomUpdated: (room: Room) => void) {
+        const roomRef = firebase.database().ref('rooms/' + roomId) as FirebaseRef;
 
-        this.sessionRef.on('value', (snapshot) => {
-            this.onData(snapshot.val() as Session);
+        roomRef.on('value', (snapshot) => {
+            onRoomUpdated(snapshot.val() as Room);
+        });
+    }
+
+    loadSession(sessionId: string, onSessionUpdated: (session: Session) => void) {
+        this.sessionRef = firebase.database().ref('sessions/' + sessionId);
+
+        this.sessionRef!.on('value', (snapshot) => {
+            onSessionUpdated(snapshot.val() as Session);
         });
     }
 
     set(path: string, value: string|number|{}) {
-        this.sessionRef.child(path).set(value);
+        this.sessionRef?.child(path).set(value);
     }
 }
 
@@ -40,4 +48,21 @@ interface FirebaseRef {
     child: (childName: string) => FirebaseRef;
     set: (value: string|number|{}) => void;
     on: (event: "value", cb: (data: any) => void) => void;
+}
+
+interface Firebase {
+    initializeApp: (data: {
+        apiKey: string,
+        authDomain: string,
+        databaseURL: string,
+        projectId: string,
+        storageBucket: string,
+        messagingSenderId: string,
+        appId: string,
+        measurementId: string
+    }) => void;
+    analytics: () => void;
+    database: () => {
+        ref: (name: string) => FirebaseRef
+    }
 }

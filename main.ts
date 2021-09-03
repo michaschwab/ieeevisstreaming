@@ -1,4 +1,4 @@
-import {Session, SessionState, Video} from "./session";
+import {Room, Session, SessionState, Video} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisVideoPlayer} from "./videoplayer";
 
@@ -8,9 +8,9 @@ class IeeeVisStream {
     static PLAYER_ELEMENT_ID = 'ytplayer';
     static CONTENT_WRAPPER_ID = 'content';
     static GATHERTOWN_WRAPPER_ID = 'gathertown';
-    static SESSION_ID = location.search.substr(location.search.indexOf('session=') + 'session='.length);
 
-    data: Session;
+    room?: Room;
+    currentSession?: Session;
     player: IeeeVisVideoPlayer;
     db: IeeeVisDb;
 
@@ -23,13 +23,13 @@ class IeeeVisStream {
 
     currentPanelTab: PANEL_TAB = "discord";
 
-    constructor() {
-        this.db = new IeeeVisDb(IeeeVisStream.SESSION_ID, this.onData.bind(this));
+    constructor(private ROOM_ID: string) {
+        this.db = new IeeeVisDb();
         this.player = new IeeeVisVideoPlayer(IeeeVisStream.PLAYER_ELEMENT_ID,
             this.getCurrentVideo.bind(this),
             this.getCurrentVideoId.bind(this),
-            () => this.data?.currentStatus);
-        this.db.loadData();
+            () => this.currentSession?.currentStatus);
+        this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
 
         this.loadGathertown();
         this.initPanelTabs();
@@ -43,16 +43,16 @@ class IeeeVisStream {
     }
 
     loadChat() {
-        const discordUrl = `https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.data.discord}`;
-        const rocketUrl = `https://chat.wushernet.com/channel/${this.data.rocketchat}?layout=embedded`;
+        const discordUrl = `https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.currentSession!.discord}`;
+        const rocketUrl = `https://chat.wushernet.com/channel/${this.currentSession!.rocketchat}?layout=embedded`;
         const url = location.hash.indexOf('discord') === -1 ? rocketUrl : discordUrl;
         const html = `<iframe src="${url}" id="discord-iframe" frameborder="0"></iframe>`;
-        document.getElementById('discord-wrap').innerHTML += html;
+        document.getElementById('discord-wrap')!.innerHTML = html;
     }
 
     loadSlido() {
-        const frame = document.getElementById('slido-frame');
-        frame.setAttribute('src', `https://app.sli.do/event/${this.data.slido}`);
+        const frame = document.getElementById('slido-frame')!;
+        frame.setAttribute('src', `https://app.sli.do/event/${this.currentSession!.slido}`);
     }
 
     loadGathertown() {
@@ -61,31 +61,39 @@ class IeeeVisStream {
                               id="gathertown-iframe"
                               src="https://gather.town/app/aDeS7vVGW5A2wuF5/vis21-tech2"></iframe>`;
 
-        const gatherWrap = document.getElementById(IeeeVisStream.GATHERTOWN_WRAPPER_ID);
+        const gatherWrap = document.getElementById(IeeeVisStream.GATHERTOWN_WRAPPER_ID)!;
         gatherWrap.innerHTML = html;
     }
 
-    onData(session: Session) {
-        const initializing = this.data === null || this.data === undefined;
-        const lastYtId = this.getCurrentVideoId();
-        this.data = session;
+    onRoomUpdated(room: Room) {
+        this.room = room;
+        this.db.loadSession(room.currentSession, session => this.onSessionUpdated(session));
+    }
 
-        document.getElementById('track-title').innerText = this.data.name;
-        document.getElementById('video-name').innerText = this.getCurrentVideo()?.title;
+    onSessionUpdated(session: Session) {
+        const lastSession: Session | undefined = this.currentSession ? {...this.currentSession} : undefined;
+        const lastYtId = this.getCurrentVideoId();
+        this.currentSession = session;
+
+        document.getElementById('room-title')!.innerText = this.room!.name;
+        document.getElementById('session-title')!.innerText = this.currentSession.name;
+        document.getElementById('video-name')!.innerText = this.getCurrentVideo()?.title || '';
 
         if(this.getCurrentVideoId() != lastYtId) {
             this.player.updateVideo();
         }
 
-        if(initializing) {
+        if(this.currentSession.discord != lastSession?.discord) {
             this.loadChat();
+        }
+        if(this.currentSession.slido != lastSession?.slido) {
             this.loadSlido();
         }
         this.resize();
     }
 
-    getCurrentVideo(): Video {
-        return this.data?.videos[this.data?.currentStatus?.videoIndex];
+    getCurrentVideo(): Video | undefined {
+        return this.currentSession?.videos[this.currentSession?.currentStatus?.videoIndex];
     }
 
     getCurrentVideoId() {
@@ -99,18 +107,18 @@ class IeeeVisStream {
             this.updatePanelTabs();
         };
 
-        document.getElementById('discord-tab-link').onclick = getToggle('discord');
-        document.getElementById('slido-tab-link').onclick = getToggle('slido');
+        document.getElementById('discord-tab-link')!.onclick = getToggle('discord');
+        document.getElementById('slido-tab-link')!.onclick = getToggle('slido');
     }
 
     updatePanelTabs() {
-        document.getElementById('discord-tab-link').className = '';
-        document.getElementById('slido-tab-link').className = '';
-        document.getElementById(`${this.currentPanelTab}-tab-link`).className = 'active';
+        document.getElementById('discord-tab-link')!.className = '';
+        document.getElementById('slido-tab-link')!.className = '';
+        document.getElementById(`${this.currentPanelTab}-tab-link`)!.className = 'active';
 
-        document.getElementById('discord-wrap').className = '';
-        document.getElementById('slido-wrap').className = '';
-        document.getElementById(`${this.currentPanelTab}-wrap`).className = 'active';
+        document.getElementById('discord-wrap')!.className = '';
+        document.getElementById('slido-wrap')!.className = '';
+        document.getElementById(`${this.currentPanelTab}-wrap`)!.className = 'active';
     }
 
     resize() {
@@ -124,13 +132,13 @@ class IeeeVisStream {
         const playerHeight = (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - gathertownHeightPercent) / 100;
         this.player.setSize(playerWidth, playerHeight);
 
-        const gatherFrame = document.getElementById('gathertown-iframe');
+        const gatherFrame = document.getElementById('gathertown-iframe')!;
         const gatherWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
         const gatherHeight=(this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * gathertownHeightPercent / 100;
         gatherFrame.setAttribute('width', `${gatherWidth}`);
         gatherFrame.setAttribute('height', `${gatherHeight}`);
 
-        const contentWrap = document.getElementById(IeeeVisStream.CONTENT_WRAPPER_ID);
+        const contentWrap = document.getElementById(IeeeVisStream.CONTENT_WRAPPER_ID)!;
         contentWrap.style.width = `${gatherWidth}px`;
 
         this.currentPanelTab = state === "QA" ? "slido" : "discord";
@@ -150,9 +158,16 @@ class IeeeVisStream {
     }
 }
 
-const stream = new IeeeVisStream();
-export declare var onYouTubeIframeAPIReady;
+const roomId = location.search.indexOf('room=') === -1 ? '' :
+    location.search.substr(location.search.indexOf('room=') + 'room='.length);
+export declare var onYouTubeIframeAPIReady: () => void;
 
-onYouTubeIframeAPIReady = () => {
-    stream.onYouTubeIframeAPIReady();
+if(roomId) {
+    const stream = new IeeeVisStream(roomId);
+    document.getElementById('wrapper')!.style.display = 'block';
+    onYouTubeIframeAPIReady = () => {
+        stream.onYouTubeIframeAPIReady();
+    }
+} else {
+    document.getElementById('param-error')!.style.display = 'block';
 }

@@ -4,10 +4,10 @@
 <body>
 
 <div id="header">
-    <h1 id="track-title"></h1>
+    <h1><span id="room-title"></span>: Session on <span id="session-title"></span></h1>
 </div>
 
-<div id="wrapper">
+<div id="wrapper" style="display: none">
     <div id="content">
         <div id="youtube-outer">
             <header>Video: <span id="video-name"></span></header>
@@ -32,6 +32,9 @@
             <div id="discord-wrap" class="active"></div>
         </div>
     </div>
+</div>
+<div id="param-error" style="display: none">
+    You are missing a room URL parameter. The URL should be [host]?room=room1, for example.
 </div>
 
 <!-- The core Firebase JS SDK is always required and must be listed first -->

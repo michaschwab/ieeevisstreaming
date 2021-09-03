@@ -1,10 +1,10 @@
 import {PlayerState, YoutubePlayer} from "./youtubeplayer";
 import {Video, SessionStatus} from "./session";
 
-declare var YT;
+declare var YT: YouTube;
 
 export class IeeeVisVideoPlayer {
-    player: YoutubePlayer;
+    player?: YoutubePlayer;
     audioContext = new AudioContext();
 
     private width = 400;
@@ -15,9 +15,9 @@ export class IeeeVisVideoPlayer {
     youtubePlayerReady = false;
 
     constructor(private elementId: string,
-                private getCurrentVideo: () => Video,
-                private getCurrentVideoId: () => string,
-                private getCurrentVideoStatus: () => SessionStatus) {
+                private getCurrentVideo: OmitThisParameter<() => (Video | undefined)>,
+                private getCurrentVideoId: OmitThisParameter<() => string | undefined>,
+                private getCurrentVideoStatus: () => (SessionStatus | undefined)) {
         this.init();
     }
 
@@ -51,7 +51,7 @@ export class IeeeVisVideoPlayer {
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        firstScriptTag.parentNode!.insertBefore(tag, firstScriptTag);
     }
 
     private onPlayerReady() {
@@ -59,23 +59,23 @@ export class IeeeVisVideoPlayer {
         this.youtubePlayerReady = true;
 
         if(this.audioContext.state === "suspended") {
-            this.player.mute();
+            this.player!.mute();
         }
-        this.player.playVideo();
+        this.player!.playVideo();
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
         if(state.data === PlayerState.UNSTARTED) {
             // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
-            this.player.seekTo(this.getCurrentStartTimeS(), true);
+            this.player!.seekTo(this.getCurrentStartTimeS() || 0, true);
         }
 
         if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
-            const startTime = this.getCurrentStartTimeS();
-            const currentTime = this.player.getCurrentTime();
+            const startTime = this.getCurrentStartTimeS() || 0;
+            const currentTime = this.player!.getCurrentTime();
             if(Math.abs(startTime - currentTime) > 5) {
-                this.player.seekTo(this.getCurrentStartTimeS(), true);
-                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player.getCurrentTime());
+                this.player!.seekTo(startTime, true);
+                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime());
             }
         }
     }
@@ -106,18 +106,26 @@ export class IeeeVisVideoPlayer {
 
     private changeYoutubeVideo() {
         // The seeking in the following line does not work for 0 (see workaround above).
-        this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
-        this.player.playVideo();
+        this.player!.loadVideoById(this.getCurrentVideoId()!, this.getCurrentStartTimeS());
+        this.player!.playVideo();
     }
 
     private getCurrentStartTimeS() {
-        if(this.getCurrentVideo().type === 'prerecorded' || !this.youtubePlayerReady) {
+        if(this.getCurrentVideo()!.type === 'prerecorded' || !this.youtubePlayerReady) {
             const timeMs = new Date().getTime();
-            const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp;
+            const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp || 0;
 
             return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        } else if(this.getCurrentVideo().type === 'live') {
-            return this.player.getDuration();
+        } else if(this.getCurrentVideo()!.type === 'live') {
+            return this.player!.getDuration();
         }
     }
+}
+
+interface YouTube {
+    Player: YouTubePlayerConstructor;
+}
+
+interface YouTubePlayerConstructor {
+    new(elementId: string, data: any): YoutubePlayer
 }

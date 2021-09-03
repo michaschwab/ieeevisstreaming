@@ -4,9 +4,15 @@ export interface Session {
     discord: string;
     rocketchat: string;
     slido: string;
+    room: string;
     videos: {
         [index: string]: Video;
     };
+}
+
+export interface Room {
+    name: string;
+    currentSession: string;
 }
 
 export interface SessionStatus {

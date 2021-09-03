@@ -4,31 +4,38 @@
 <link href="styles.css" rel="stylesheet" />
 <body>
 
-<h2>Admin Panel:</h2>
-<h1 id="track-title"></h1>
 
-<div id="firebaseui-auth-container"></div>
+<div id="wrapper" style="display: none">
+    <h2>Admin Panel:</h2>
+    <h1 id="track-title"></h1>
 
-<div id="videos">
+    <div id="firebaseui-auth-container"></div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Video</th>
-                <th>Type</th>
-                <th>Time Played</th>
-                <th>State</th>
-            </tr>
-        </thead>
-        <tbody id="videos-table-body">
+    <div id="videos">
 
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Video</th>
+                    <th>Type</th>
+                    <th>Time Played</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody id="videos-table-body">
 
+            </tbody>
+        </table>
+
+    </div>
+
+    <button id="previous-video-button">Previous Video</button>
+    <button id="next-video-button">Next Video</button>
 </div>
 
-<button id="previous-video-button">Previous Video</button>
-<button id="next-video-button">Next Video</button>
+<div id="param-error" style="display: none">
+    You are missing a room URL parameter. The URL should be [host]/admin?session=session1, for example.
+</div>
 
 <!--
 switch to video: choose video from list button,

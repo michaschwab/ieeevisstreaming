@@ -2,45 +2,41 @@ import {Session} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisAuth} from "./auth";
 
-declare var YT;
-
 class IeeeVisStreamAdmin {
-    data: Session;
+    session?: Session;
     db: IeeeVisDb;
 
-    static SESSION_ID = location.search.substr(location.search.indexOf('session=') + 'session='.length);
-
-    constructor() {
-        this.db = new IeeeVisDb(IeeeVisStreamAdmin.SESSION_ID, this.onData.bind(this));
-        this.db.loadData();
+    constructor(private SESSION_ID: string) {
+        this.db = new IeeeVisDb();
+        this.db.loadSession(SESSION_ID, session => this.onSessionUpdated(session));
 
         new IeeeVisAuth();
 
-        document.getElementById('previous-video-button').onclick = this.previousVideo.bind(this);
-        document.getElementById('next-video-button').onclick = this.nextVideo.bind(this);
+        document.getElementById('previous-video-button')!.onclick = this.previousVideo.bind(this);
+        document.getElementById('next-video-button')!.onclick = this.nextVideo.bind(this);
 
         setInterval(this.updateTable.bind(this), 1000);
     }
 
-    onData(track: Session) {
-        this.data = track;
+    onSessionUpdated(session: Session) {
+        this.session = session;
 
-        document.getElementById('track-title').innerText = this.data.name;
+        document.getElementById('track-title')!.innerText = this.session.name;
     }
 
     updateTable() {
-        if(!this.data) {
+        if(!this.session) {
             return;
         }
 
         const tableBody = document.getElementById('videos-table-body') as HTMLTableElement;
         tableBody.innerHTML = '';
 
-        const currentVideoPlayedMs = new Date().getTime() - this.data.currentStatus.videoStartTimestamp;
+        const currentVideoPlayedMs = new Date().getTime() - this.session.currentStatus.videoStartTimestamp;
 
-        for(const videoKey in this.data.videos) {
-            const video = this.data.videos[videoKey];
-            const active = this.data.currentStatus.videoIndex.toString() === videoKey;
+        for(const videoKey in this.session.videos) {
+            const video = this.session.videos[videoKey];
+            const active = this.session.currentStatus.videoIndex.toString() === videoKey;
             const timePlayed = !active ? '-' : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
             const ytUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
 
@@ -57,12 +53,12 @@ class IeeeVisStreamAdmin {
     }
 
     previousVideo() {
-        this.updateVideoIndex(this.data.currentStatus.videoIndex - 1);
+        this.updateVideoIndex(this.session!.currentStatus.videoIndex - 1);
     }
 
     nextVideo() {
         //TODO: don't allow going past the number of vids.
-        this.updateVideoIndex(this.data.currentStatus.videoIndex + 1);
+        this.updateVideoIndex(this.session!.currentStatus.videoIndex + 1);
     }
 
     private updateVideoIndex(index: number) {
@@ -72,10 +68,20 @@ class IeeeVisStreamAdmin {
         });
         /*this.db.set('currentStatus/videoStartTimestamp', new Date().getTime());
         this.db.set('currentStatus/videoIndex', index);*/
-        this.data.currentStatus.videoStartTimestamp = new Date().getTime();
-        this.data.currentStatus.videoIndex = index;
+        this.session!.currentStatus.videoStartTimestamp = new Date().getTime();
+        this.session!.currentStatus.videoIndex = index;
         this.updateTable();
     }
 }
 
-const streamAdmin = new IeeeVisStreamAdmin();
+const sessionId = location.search.indexOf('session=') === -1 ? '' :
+    location.search.substr(location.search.indexOf('session=') + 'session='.length);
+
+console.log('session', sessionId);
+
+if(sessionId) {
+    const streamAdmin = new IeeeVisStreamAdmin(sessionId);
+    document.getElementById('wrapper')!.style.display = 'block';
+} else {
+    document.getElementById('param-error')!.style.display = 'block';
+}

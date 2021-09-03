@@ -1,9 +1,7 @@
 (() => {
   // ieeevisdb.ts
   var IeeeVisDb = class {
-    constructor(SESSION_ID, onData) {
-      this.SESSION_ID = SESSION_ID;
-      this.onData = onData;
+    constructor() {
       this.initFirebase();
     }
     initFirebase() {
@@ -19,14 +17,20 @@
       });
       firebase.analytics();
     }
-    loadData() {
-      this.sessionRef = firebase.database().ref("sessions/" + this.SESSION_ID);
+    loadRoom(roomId2, onRoomUpdated) {
+      const roomRef = firebase.database().ref("rooms/" + roomId2);
+      roomRef.on("value", (snapshot) => {
+        onRoomUpdated(snapshot.val());
+      });
+    }
+    loadSession(sessionId, onSessionUpdated) {
+      this.sessionRef = firebase.database().ref("sessions/" + sessionId);
       this.sessionRef.on("value", (snapshot) => {
-        this.onData(snapshot.val());
+        onSessionUpdated(snapshot.val());
       });
     }
     set(path, value) {
-      this.sessionRef.child(path).set(value);
+      this.sessionRef?.child(path).set(value);
     }
   };
 
@@ -93,13 +97,13 @@
     }
     onPlayerStateChange(state) {
       if (state.data === PlayerState.UNSTARTED) {
-        this.player.seekTo(this.getCurrentStartTimeS(), true);
+        this.player.seekTo(this.getCurrentStartTimeS() || 0, true);
       }
       if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
-        const startTime = this.getCurrentStartTimeS();
+        const startTime = this.getCurrentStartTimeS() || 0;
         const currentTime = this.player.getCurrentTime();
         if (Math.abs(startTime - currentTime) > 5) {
-          this.player.seekTo(this.getCurrentStartTimeS(), true);
+          this.player.seekTo(startTime, true);
           console.log("lagging behind. seek.", this.getCurrentStartTimeS(), this.player.getCurrentTime());
         }
       }
@@ -132,7 +136,7 @@
     getCurrentStartTimeS() {
       if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
         const timeMs = new Date().getTime();
-        const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp;
+        const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp || 0;
         return Math.round((timeMs - videoStartTimestampMs) / 1e3);
       } else if (this.getCurrentVideo().type === "live") {
         return this.player.getDuration();
@@ -142,15 +146,16 @@
 
   // main.ts
   var _IeeeVisStream = class {
-    constructor() {
+    constructor(ROOM_ID) {
+      this.ROOM_ID = ROOM_ID;
       this.width = window.innerWidth;
       this.height = window.innerHeight;
       this.CHAT_WIDTH_PERCENT = 40;
       this.CHAT_PADDING_LEFT_PX = 20;
       this.currentPanelTab = "discord";
-      this.db = new IeeeVisDb(_IeeeVisStream.SESSION_ID, this.onData.bind(this));
-      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.data?.currentStatus);
-      this.db.loadData();
+      this.db = new IeeeVisDb();
+      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
+      this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.loadGathertown();
       this.initPanelTabs();
       this.resize();
@@ -160,15 +165,15 @@
       this.player.onYouTubeIframeAPIReady();
     }
     loadChat() {
-      const discordUrl = `https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.data.discord}`;
-      const rocketUrl = `https://chat.wushernet.com/channel/${this.data.rocketchat}?layout=embedded`;
+      const discordUrl = `https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.currentSession.discord}`;
+      const rocketUrl = `https://chat.wushernet.com/channel/${this.currentSession.rocketchat}?layout=embedded`;
       const url = location.hash.indexOf("discord") === -1 ? rocketUrl : discordUrl;
       const html = `<iframe src="${url}" id="discord-iframe" frameborder="0"></iframe>`;
-      document.getElementById("discord-wrap").innerHTML += html;
+      document.getElementById("discord-wrap").innerHTML = html;
     }
     loadSlido() {
       const frame = document.getElementById("slido-frame");
-      frame.setAttribute("src", `https://app.sli.do/event/${this.data.slido}`);
+      frame.setAttribute("src", `https://app.sli.do/event/${this.currentSession.slido}`);
     }
     loadGathertown() {
       const html = `<iframe title="gather town"
@@ -178,23 +183,30 @@
       const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
       gatherWrap.innerHTML = html;
     }
-    onData(session) {
-      const initializing = this.data === null || this.data === void 0;
+    onRoomUpdated(room) {
+      this.room = room;
+      this.db.loadSession(room.currentSession, (session) => this.onSessionUpdated(session));
+    }
+    onSessionUpdated(session) {
+      const lastSession = this.currentSession ? {...this.currentSession} : void 0;
       const lastYtId = this.getCurrentVideoId();
-      this.data = session;
-      document.getElementById("track-title").innerText = this.data.name;
-      document.getElementById("video-name").innerText = this.getCurrentVideo()?.title;
+      this.currentSession = session;
+      document.getElementById("room-title").innerText = this.room.name;
+      document.getElementById("session-title").innerText = this.currentSession.name;
+      document.getElementById("video-name").innerText = this.getCurrentVideo()?.title || "";
       if (this.getCurrentVideoId() != lastYtId) {
         this.player.updateVideo();
       }
-      if (initializing) {
+      if (this.currentSession.discord != lastSession?.discord) {
         this.loadChat();
+      }
+      if (this.currentSession.slido != lastSession?.slido) {
         this.loadSlido();
       }
       this.resize();
     }
     getCurrentVideo() {
-      return this.data?.videos[this.data?.currentStatus?.videoIndex];
+      return this.currentSession?.videos[this.currentSession?.currentStatus?.videoIndex];
     }
     getCurrentVideoId() {
       return this.getCurrentVideo()?.youtubeId;
@@ -249,11 +261,16 @@
   IeeeVisStream.PLAYER_ELEMENT_ID = "ytplayer";
   IeeeVisStream.CONTENT_WRAPPER_ID = "content";
   IeeeVisStream.GATHERTOWN_WRAPPER_ID = "gathertown";
-  IeeeVisStream.SESSION_ID = location.search.substr(location.search.indexOf("session=") + "session=".length);
   IeeeVisStream.HEADERS_HEIGHT = 40;
-  var stream = new IeeeVisStream();
-  onYouTubeIframeAPIReady = () => {
-    stream.onYouTubeIframeAPIReady();
-  };
+  var roomId = location.search.indexOf("room=") === -1 ? "" : location.search.substr(location.search.indexOf("room=") + "room=".length);
+  if (roomId) {
+    const stream = new IeeeVisStream(roomId);
+    document.getElementById("wrapper").style.display = "block";
+    onYouTubeIframeAPIReady = () => {
+      stream.onYouTubeIframeAPIReady();
+    };
+  } else {
+    document.getElementById("param-error").style.display = "block";
+  }
 })();
 //# sourceMappingURL=bundle.js.map
