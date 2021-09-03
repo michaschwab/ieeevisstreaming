@@ -31,10 +31,19 @@
 
     <button id="previous-video-button">Previous Video</button>
     <button id="next-video-button">Next Video</button>
+
+    <br />
+    <br />
+    <br />
+
+    <button id="session-to-room-button">
+        Make this session now live on <span id="room-name"></span>
+        (room id: <span id="room-id"></span>, current session: <span id="room-currentsession"></span>)
+    </button>
 </div>
 
 <div id="param-error" style="display: none">
-    You are missing a room URL parameter. The URL should be [host]/admin?session=session1, for example.
+    You are missing a session URL parameter. The URL should be [host]/admin?session=session1, for example.
 </div>
 
 <!--

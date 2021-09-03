@@ -4,6 +4,7 @@ declare var firebase: Firebase;
 
 export class IeeeVisDb {
     private sessionRef?: FirebaseRef;
+    private roomRef?: FirebaseRef;
 
     constructor() {
         this.initFirebase();
@@ -24,9 +25,9 @@ export class IeeeVisDb {
     }
 
     loadRoom(roomId: string, onRoomUpdated: (room: Room) => void) {
-        const roomRef = firebase.database().ref('rooms/' + roomId) as FirebaseRef;
+        this.roomRef = firebase.database().ref('rooms/' + roomId) as FirebaseRef;
 
-        roomRef.on('value', (snapshot) => {
+        this.roomRef.on('value', (snapshot) => {
             onRoomUpdated(snapshot.val() as Room);
         });
     }
@@ -41,6 +42,10 @@ export class IeeeVisDb {
 
     set(path: string, value: string|number|{}) {
         this.sessionRef?.child(path).set(value);
+    }
+
+    setRoom(path: string, value: string|number) {
+        this.roomRef?.child(path).set(value);
     }
 }
 

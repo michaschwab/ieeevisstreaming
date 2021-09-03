@@ -67,10 +67,15 @@ class IeeeVisStream {
 
     onRoomUpdated(room: Room) {
         this.room = room;
-        this.db.loadSession(room.currentSession, session => this.onSessionUpdated(session));
+
+        this.db.loadSession(room.currentSession, session => this.onSessionUpdated(room.currentSession, session));
     }
 
-    onSessionUpdated(session: Session) {
+    onSessionUpdated(id: string, session: Session) {
+        if(this.room?.currentSession != id) {
+            // Do not listen to last session's update events.
+            return;
+        }
         const lastSession: Session | undefined = this.currentSession ? {...this.currentSession} : undefined;
         const lastYtId = this.getCurrentVideoId();
         this.currentSession = session;

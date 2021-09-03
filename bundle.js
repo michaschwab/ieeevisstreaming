@@ -18,8 +18,8 @@
       firebase.analytics();
     }
     loadRoom(roomId2, onRoomUpdated) {
-      const roomRef = firebase.database().ref("rooms/" + roomId2);
-      roomRef.on("value", (snapshot) => {
+      this.roomRef = firebase.database().ref("rooms/" + roomId2);
+      this.roomRef.on("value", (snapshot) => {
         onRoomUpdated(snapshot.val());
       });
     }
@@ -31,6 +31,9 @@
     }
     set(path, value) {
       this.sessionRef?.child(path).set(value);
+    }
+    setRoom(path, value) {
+      this.roomRef?.child(path).set(value);
     }
   };
 
@@ -185,9 +188,12 @@
     }
     onRoomUpdated(room) {
       this.room = room;
-      this.db.loadSession(room.currentSession, (session) => this.onSessionUpdated(session));
+      this.db.loadSession(room.currentSession, (session) => this.onSessionUpdated(room.currentSession, session));
     }
-    onSessionUpdated(session) {
+    onSessionUpdated(id, session) {
+      if (this.room?.currentSession != id) {
+        return;
+      }
       const lastSession = this.currentSession ? {...this.currentSession} : void 0;
       const lastYtId = this.getCurrentVideoId();
       this.currentSession = session;

@@ -18,8 +18,8 @@
       firebase.analytics();
     }
     loadRoom(roomId, onRoomUpdated) {
-      const roomRef = firebase.database().ref("rooms/" + roomId);
-      roomRef.on("value", (snapshot) => {
+      this.roomRef = firebase.database().ref("rooms/" + roomId);
+      this.roomRef.on("value", (snapshot) => {
         onRoomUpdated(snapshot.val());
       });
     }
@@ -31,6 +31,9 @@
     }
     set(path, value) {
       this.sessionRef?.child(path).set(value);
+    }
+    setRoom(path, value) {
+      this.roomRef?.child(path).set(value);
     }
   };
 
@@ -62,11 +65,21 @@
       new IeeeVisAuth();
       document.getElementById("previous-video-button").onclick = this.previousVideo.bind(this);
       document.getElementById("next-video-button").onclick = this.nextVideo.bind(this);
+      document.getElementById("session-to-room-button").onclick = this.sessionToRoom.bind(this);
       setInterval(this.updateTable.bind(this), 1e3);
     }
     onSessionUpdated(session) {
       this.session = session;
       document.getElementById("track-title").innerText = this.session.name;
+      document.getElementById("room-id").innerText = this.session.room;
+      this.db.loadRoom(session.room, (room) => this.onRoomUpdated(session.room, room));
+    }
+    onRoomUpdated(roomId, room) {
+      if (roomId != this.session?.room) {
+        return;
+      }
+      document.getElementById("room-name").innerText = room.name;
+      document.getElementById("room-currentsession").innerText = room.currentSession;
     }
     updateTable() {
       if (!this.session) {
@@ -96,6 +109,9 @@
     nextVideo() {
       this.updateVideoIndex(this.session.currentStatus.videoIndex + 1);
     }
+    sessionToRoom() {
+      this.db.setRoom("currentSession", this.SESSION_ID);
+    }
     updateVideoIndex(index) {
       this.db.set("currentStatus", {
         videoStartTimestamp: new Date().getTime(),
@@ -107,7 +123,6 @@
     }
   };
   var sessionId = location.search.indexOf("session=") === -1 ? "" : location.search.substr(location.search.indexOf("session=") + "session=".length);
-  console.log("session", sessionId);
   if (sessionId) {
     const streamAdmin = new IeeeVisStreamAdmin(sessionId);
     document.getElementById("wrapper").style.display = "block";

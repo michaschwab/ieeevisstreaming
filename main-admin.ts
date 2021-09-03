@@ -1,4 +1,4 @@
-import {Session} from "./session";
+import {Room, Session} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisAuth} from "./auth";
 
@@ -14,6 +14,7 @@ class IeeeVisStreamAdmin {
 
         document.getElementById('previous-video-button')!.onclick = this.previousVideo.bind(this);
         document.getElementById('next-video-button')!.onclick = this.nextVideo.bind(this);
+        document.getElementById('session-to-room-button')!.onclick = this.sessionToRoom.bind(this);
 
         setInterval(this.updateTable.bind(this), 1000);
     }
@@ -22,6 +23,18 @@ class IeeeVisStreamAdmin {
         this.session = session;
 
         document.getElementById('track-title')!.innerText = this.session.name;
+        document.getElementById('room-id')!.innerText = this.session.room;
+
+        this.db.loadRoom(session.room, room => this.onRoomUpdated(session.room, room));
+    }
+
+    onRoomUpdated(roomId: string, room: Room) {
+        if(roomId != this.session?.room) {
+            // Do not listen to update events of a different room.
+            return;
+        }
+        document.getElementById('room-name')!.innerText = room.name;
+        document.getElementById('room-currentsession')!.innerText = room.currentSession;
     }
 
     updateTable() {
@@ -61,6 +74,10 @@ class IeeeVisStreamAdmin {
         this.updateVideoIndex(this.session!.currentStatus.videoIndex + 1);
     }
 
+    sessionToRoom() {
+        this.db.setRoom('currentSession', this.SESSION_ID);
+    }
+
     private updateVideoIndex(index: number) {
         this.db.set('currentStatus', {
             videoStartTimestamp: new Date().getTime(),
@@ -76,8 +93,6 @@ class IeeeVisStreamAdmin {
 
 const sessionId = location.search.indexOf('session=') === -1 ? '' :
     location.search.substr(location.search.indexOf('session=') + 'session='.length);
-
-console.log('session', sessionId);
 
 if(sessionId) {
     const streamAdmin = new IeeeVisStreamAdmin(sessionId);
