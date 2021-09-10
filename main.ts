@@ -43,11 +43,11 @@ class IeeeVisStream {
     }
 
     loadChat() {
-        const discordUrl = `https://titanembeds.com/embed/851543399982170163?defaultchannel=${this.currentSession!.discord}`;
-        const rocketUrl = `https://chat.wushernet.com/channel/${this.currentSession!.rocketchat}?layout=embedded`;
-        const url = location.hash.indexOf('discord') === -1 ? rocketUrl : discordUrl;
-        const html = `<iframe src="${url}" id="discord-iframe" frameborder="0"></iframe>`;
-        document.getElementById('discord-wrap')!.innerHTML = html;
+        document.getElementById('discord-wrap')!.innerHTML = `
+            <iframe
+                id="discord-iframe"
+                src="https://ieeevis-e.widgetbot.co/channels/884159773287805038/${this.currentSession!.discord}"
+            ></iframe>`;
     }
 
     loadSlido() {
@@ -148,16 +148,18 @@ class IeeeVisStream {
 
         this.currentPanelTab = state === "QA" ? "slido" : "discord";
         this.updatePanelTabs();
+        const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
+        document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
         const slidoFrame = document.getElementById('slido-frame');
         if(slidoFrame) {
-            slidoFrame.setAttribute('width', `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
+            slidoFrame.setAttribute('width', `${panelWidth}`);
             slidoFrame.setAttribute('height', `${this.height - IeeeVisStream.HEADERS_HEIGHT}`);
         }
 
         const discordFrame = document.getElementById('discord-iframe');
         if(discordFrame) {
-            discordFrame.setAttribute('width', `${this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX}`);
+            discordFrame.setAttribute('width', `${panelWidth}`);
             discordFrame.setAttribute('height', `${this.height - IeeeVisStream.HEADERS_HEIGHT}`);
         }
     }
@@ -169,7 +171,7 @@ export declare var onYouTubeIframeAPIReady: () => void;
 
 if(roomId) {
     const stream = new IeeeVisStream(roomId);
-    document.getElementById('wrapper')!.style.display = 'block';
+    document.getElementById('wrapper')!.style.display = 'flex';
     onYouTubeIframeAPIReady = () => {
         stream.onYouTubeIframeAPIReady();
     }
