@@ -52,7 +52,7 @@
   var IeeeVisVideoPlayer = class {
     constructor(elementId, getCurrentVideo, getCurrentVideoId, getCurrentVideoStatus) {
       this.elementId = elementId;
-      this.getCurrentStage = getCurrentVideo;
+      this.getCurrentVideo = getCurrentVideo;
       this.getCurrentVideoId = getCurrentVideoId;
       this.getCurrentVideoStatus = getCurrentVideoStatus;
       this.audioContext = new AudioContext();
@@ -137,11 +137,11 @@
       this.player.playVideo();
     }
     getCurrentStartTimeS() {
-      if (this.getCurrentVideo().type === "prerecorded" || !this.youtubePlayerReady) {
+      if (!this.getCurrentVideo().live || !this.youtubePlayerReady) {
         const timeMs = new Date().getTime();
         const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp || 0;
         return Math.round((timeMs - videoStartTimestampMs) / 1e3);
-      } else if (this.getCurrentVideo().type === "live") {
+      } else if (this.getCurrentVideo().live) {
         return this.player.getDuration();
       }
     }
@@ -157,7 +157,7 @@
       this.CHAT_PADDING_LEFT_PX = 20;
       this.currentPanelTab = "discord";
       this.db = new IeeeVisDb();
-      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentVideo.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
+      this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.loadGathertown();
       this.initPanelTabs();
@@ -199,7 +199,7 @@
       this.currentSession = session;
       document.getElementById("room-title").innerText = this.room.name;
       document.getElementById("session-title").innerText = this.currentSession.name;
-      document.getElementById("video-name").innerText = this.getCurrentVideo()?.title || "";
+      document.getElementById("video-name").innerText = this.getCurrentStage()?.title || "";
       if (this.getCurrentVideoId() != lastYtId) {
         this.player.updateVideo();
       }
@@ -211,52 +211,46 @@
       }
       this.resize();
     }
-    getCurrentVideo() {
-      return this.currentSession?.videos[this.currentSession?.currentStatus?.videoIndex];
+    getCurrentStage() {
+      return this.currentSession?.stages[this.currentSession?.currentStatus?.videoIndex];
     }
     getCurrentVideoId() {
-      return this.getCurrentVideo()?.youtubeId;
+      return this.getCurrentStage()?.youtubeId;
     }
     initPanelTabs() {
-      const getToggle = (tabName) => () => {
-        console.log(tabName);
-        this.currentPanelTab = tabName;
-        this.updatePanelTabs();
-      };
-      document.getElementById("discord-tab-link").onclick = getToggle("discord");
-      document.getElementById("slido-tab-link").onclick = getToggle("slido");
     }
     updatePanelTabs() {
-      document.getElementById("discord-tab-link").className = "";
-      document.getElementById("slido-tab-link").className = "";
-      document.getElementById(`${this.currentPanelTab}-tab-link`).className = "active";
-      document.getElementById("discord-wrap").className = "";
-      document.getElementById("slido-wrap").className = "";
-      document.getElementById(`${this.currentPanelTab}-wrap`).className = "active";
     }
     resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight - 65;
-      const state = this.getCurrentVideo()?.state;
-      const gathertownHeightPercent = state === "SOCIALIZING" ? 65 : 35;
-      const playerWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
-      const playerHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - gathertownHeightPercent) / 100;
-      this.player.setSize(playerWidth, playerHeight);
-      const gatherFrame = document.getElementById("gathertown-iframe");
-      const gatherWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
-      const gatherHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * gathertownHeightPercent / 100;
-      gatherFrame.setAttribute("width", `${gatherWidth}`);
-      gatherFrame.setAttribute("height", `${gatherHeight}`);
+      const state = this.getCurrentStage()?.state;
+      const secondaryContentHeightPercent = 35;
+      if (state === "SOCIALIZING") {
+        document.getElementById("youtube-outer").style.display = "none";
+        document.getElementById("gathertown-outer").style.display = "block";
+      } else {
+        document.getElementById("youtube-outer").style.display = "block";
+        document.getElementById("gathertown-outer").style.display = "none";
+      }
+      const contentWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
+      const mainContentHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - secondaryContentHeightPercent) / 100;
       const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
-      contentWrap.style.width = `${gatherWidth}px`;
-      this.currentPanelTab = state === "QA" ? "slido" : "discord";
-      this.updatePanelTabs();
+      contentWrap.style.width = `${contentWidth}px`;
+      this.player.setSize(contentWidth, mainContentHeight);
+      const gatherFrame = document.getElementById("gathertown-iframe");
+      gatherFrame.setAttribute("width", `${contentWidth}`);
+      gatherFrame.setAttribute("height", `${mainContentHeight}`);
+      const secondaryContentHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * secondaryContentHeightPercent / 100;
+      const secondaryContentFrame = document.getElementById("secondary-content");
+      secondaryContentFrame.setAttribute("width", `${contentWidth}`);
+      secondaryContentFrame.setAttribute("height", `${secondaryContentHeight}`);
       const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
       document.getElementById("sidepanel").style.width = `${panelWidth}px`;
       const slidoFrame = document.getElementById("slido-frame");
       if (slidoFrame) {
-        slidoFrame.setAttribute("width", `${panelWidth}`);
-        slidoFrame.setAttribute("height", `${this.height - _IeeeVisStream.HEADERS_HEIGHT}`);
+        slidoFrame.setAttribute("width", `${contentWidth}`);
+        slidoFrame.setAttribute("height", `${secondaryContentHeight}`);
       }
       const discordFrame = document.getElementById("discord-iframe");
       if (discordFrame) {

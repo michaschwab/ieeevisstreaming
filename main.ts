@@ -106,24 +106,24 @@ class IeeeVisStream {
     }
 
     initPanelTabs() {
-        const getToggle = (tabName: PANEL_TAB) => () => {
+        /*const getToggle = (tabName: PANEL_TAB) => () => {
             console.log(tabName);
             this.currentPanelTab = tabName;
             this.updatePanelTabs();
         };
 
         document.getElementById('discord-tab-link')!.onclick = getToggle('discord');
-        document.getElementById('slido-tab-link')!.onclick = getToggle('slido');
+        document.getElementById('slido-tab-link')!.onclick = getToggle('slido');*/
     }
 
     updatePanelTabs() {
-        document.getElementById('discord-tab-link')!.className = '';
+        /*document.getElementById('discord-tab-link')!.className = '';
         document.getElementById('slido-tab-link')!.className = '';
         document.getElementById(`${this.currentPanelTab}-tab-link`)!.className = 'active';
 
         document.getElementById('discord-wrap')!.className = '';
         document.getElementById('slido-wrap')!.className = '';
-        document.getElementById(`${this.currentPanelTab}-wrap`)!.className = 'active';
+        document.getElementById(`${this.currentPanelTab}-wrap`)!.className = 'active';*/
     }
 
     resize() {
@@ -131,30 +131,44 @@ class IeeeVisStream {
         this.height = window.innerHeight - 65; // 40px for title
 
         const state = this.getCurrentStage()?.state;
-        const gathertownHeightPercent = state === "SOCIALIZING" ? 65 : 35;
+        const secondaryContentHeightPercent = 35;
 
-        const playerWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
-        const playerHeight = (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - gathertownHeightPercent) / 100;
-        this.player.setSize(playerWidth, playerHeight);
+        if(state === "SOCIALIZING") {
+            // Show gathertown, hide YouTube
+            document.getElementById('youtube-outer')!.style.display = 'none';
+            document.getElementById('gathertown-outer')!.style.display = 'block';
+        } else {
+            // Hide gathertown, show YouTube
+            document.getElementById('youtube-outer')!.style.display = 'block';
+            document.getElementById('gathertown-outer')!.style.display = 'none';
+        }
 
-        const gatherFrame = document.getElementById('gathertown-iframe')!;
-        const gatherWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
-        const gatherHeight=(this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * gathertownHeightPercent / 100;
-        gatherFrame.setAttribute('width', `${gatherWidth}`);
-        gatherFrame.setAttribute('height', `${gatherHeight}`);
+        const contentWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
+        const mainContentHeight = (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - secondaryContentHeightPercent) / 100;
 
         const contentWrap = document.getElementById(IeeeVisStream.CONTENT_WRAPPER_ID)!;
-        contentWrap.style.width = `${gatherWidth}px`;
+        contentWrap.style.width = `${contentWidth}px`;
+        this.player.setSize(contentWidth, mainContentHeight);
 
-        this.currentPanelTab = state === "QA" ? "slido" : "discord";
-        this.updatePanelTabs();
+        const gatherFrame = document.getElementById('gathertown-iframe')!;
+        gatherFrame.setAttribute('width', `${contentWidth}`);
+        gatherFrame.setAttribute('height', `${mainContentHeight}`);
+
+        const secondaryContentHeight = (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * secondaryContentHeightPercent / 100;
+        const secondaryContentFrame = document.getElementById('secondary-content')!;
+        secondaryContentFrame.setAttribute('width', `${contentWidth}`);
+        secondaryContentFrame.setAttribute('height', `${secondaryContentHeight}`);
+
+
+        // this.currentPanelTab = state === "QA" ? "slido" : "discord";
+        // this.updatePanelTabs();
         const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
         const slidoFrame = document.getElementById('slido-frame');
         if(slidoFrame) {
-            slidoFrame.setAttribute('width', `${panelWidth}`);
-            slidoFrame.setAttribute('height', `${this.height - IeeeVisStream.HEADERS_HEIGHT}`);
+            slidoFrame.setAttribute('width', `${contentWidth}`);
+            slidoFrame.setAttribute('height', `${secondaryContentHeight}`);
         }
 
         const discordFrame = document.getElementById('discord-iframe');

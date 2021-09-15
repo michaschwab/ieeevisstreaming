@@ -47,19 +47,24 @@ class IeeeVisStreamAdmin {
 
         const currentVideoPlayedMs = new Date().getTime() - this.session.currentStatus.videoStartTimestamp;
 
-        for(const videoKey in this.session.videos) {
-            const video = this.session.videos[videoKey];
-            const active = this.session.currentStatus.videoIndex.toString() === videoKey;
+        for(const stageKey in this.session.stages) {
+            const stage = this.session.stages[stageKey];
+            const active = this.session.currentStatus.videoIndex.toString() === stageKey;
+            const isPreview = stage.state === "PREVIEW";
             const timePlayed = !active ? '-' : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
-            const ytUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+            const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
+            const imgUrl = stage.imageUrl;
 
             const tr = document.createElement('tr');
             tr.className = active ? 'active' : '';
             tr.innerHTML = `
-                <td><a href=${ytUrl}" target="_blank">${video.title}</a></td>
-                <td>${video.type}</td>
+                <td>` +
+                (isPreview ? `<a href="${imgUrl}" target="_blank">[Image]</a>`
+                    : `<a href=${ytUrl}" target="_blank">${stage.title}</a>`) + `
+                </td>
+                <td>${stage.live ? "yes" : "-"}</td>
                 <td>${timePlayed}</td>
-                <td>${video.state}</td>`;
+                <td>${stage.state}</td>`;
 
             tableBody.append(tr);
         }
