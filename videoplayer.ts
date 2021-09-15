@@ -1,5 +1,5 @@
 import {PlayerState, YoutubePlayer} from "./youtubeplayer";
-import {Video, SessionStatus} from "./session";
+import {SessionStage, SessionStatus} from "./session";
 
 declare var YT: YouTube;
 
@@ -15,7 +15,7 @@ export class IeeeVisVideoPlayer {
     youtubePlayerReady = false;
 
     constructor(private elementId: string,
-                private getCurrentVideo: OmitThisParameter<() => (Video | undefined)>,
+                private getCurrentVideo: OmitThisParameter<() => (SessionStage | undefined)>,
                 private getCurrentVideoId: OmitThisParameter<() => string | undefined>,
                 private getCurrentVideoStatus: () => (SessionStatus | undefined)) {
         this.init();
@@ -111,12 +111,12 @@ export class IeeeVisVideoPlayer {
     }
 
     private getCurrentStartTimeS() {
-        if(this.getCurrentVideo()!.type === 'prerecorded' || !this.youtubePlayerReady) {
+        if(!this.getCurrentVideo()!.live || !this.youtubePlayerReady) {
             const timeMs = new Date().getTime();
             const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp || 0;
 
             return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        } else if(this.getCurrentVideo()!.type === 'live') {
+        } else if(this.getCurrentVideo()!.live) {
             return this.player!.getDuration();
         }
     }

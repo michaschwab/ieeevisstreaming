@@ -5,8 +5,8 @@ export interface Session {
     rocketchat: string;
     slido: string;
     room: string;
-    videos: {
-        [index: string]: Video;
+    stages: {
+        [index: string]: SessionStage;
     };
 }
 
@@ -20,11 +20,12 @@ export interface SessionStatus {
     videoStartTimestamp: number;
 }
 
-export interface Video {
+export interface SessionStage {
     title: string;
-    type: "prerecorded"|"live";
-    youtubeId: string;
+    live?: boolean;
+    youtubeId?: string;
+    imageUrl?: string;
     state: SessionState;
 }
 
-export type SessionState = "WATCHING" | "QA" | "SOCIALIZING";
+export type SessionState = "WATCHING" | "QA" | "SOCIALIZING" | "PREVIEW";

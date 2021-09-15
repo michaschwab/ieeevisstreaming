@@ -52,7 +52,7 @@
   var IeeeVisVideoPlayer = class {
     constructor(elementId, getCurrentVideo, getCurrentVideoId, getCurrentVideoStatus) {
       this.elementId = elementId;
-      this.getCurrentVideo = getCurrentVideo;
+      this.getCurrentStage = getCurrentVideo;
       this.getCurrentVideoId = getCurrentVideoId;
       this.getCurrentVideoStatus = getCurrentVideoStatus;
       this.audioContext = new AudioContext();

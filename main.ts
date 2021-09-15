@@ -1,4 +1,4 @@
-import {Room, Session, SessionState, Video} from "./session";
+import {Room, Session, SessionState, SessionStage} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisVideoPlayer} from "./videoplayer";
 
@@ -26,7 +26,7 @@ class IeeeVisStream {
     constructor(private ROOM_ID: string) {
         this.db = new IeeeVisDb();
         this.player = new IeeeVisVideoPlayer(IeeeVisStream.PLAYER_ELEMENT_ID,
-            this.getCurrentVideo.bind(this),
+            this.getCurrentStage.bind(this),
             this.getCurrentVideoId.bind(this),
             () => this.currentSession?.currentStatus);
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
@@ -82,7 +82,7 @@ class IeeeVisStream {
 
         document.getElementById('room-title')!.innerText = this.room!.name;
         document.getElementById('session-title')!.innerText = this.currentSession.name;
-        document.getElementById('video-name')!.innerText = this.getCurrentVideo()?.title || '';
+        document.getElementById('video-name')!.innerText = this.getCurrentStage()?.title || '';
 
         if(this.getCurrentVideoId() != lastYtId) {
             this.player.updateVideo();
@@ -97,12 +97,12 @@ class IeeeVisStream {
         this.resize();
     }
 
-    getCurrentVideo(): Video | undefined {
-        return this.currentSession?.videos[this.currentSession?.currentStatus?.videoIndex];
+    getCurrentStage(): SessionStage | undefined {
+        return this.currentSession?.stages[this.currentSession?.currentStatus?.videoIndex];
     }
 
     getCurrentVideoId() {
-        return this.getCurrentVideo()?.youtubeId;
+        return this.getCurrentStage()?.youtubeId;
     }
 
     initPanelTabs() {
@@ -130,7 +130,7 @@ class IeeeVisStream {
         this.width = window.innerWidth;
         this.height = window.innerHeight - 65; // 40px for title
 
-        const state = this.getCurrentVideo()?.state;
+        const state = this.getCurrentStage()?.state;
         const gathertownHeightPercent = state === "SOCIALIZING" ? 65 : 35;
 
         const playerWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
