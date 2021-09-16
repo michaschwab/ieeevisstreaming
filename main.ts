@@ -32,7 +32,6 @@ class IeeeVisStream {
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
 
         this.loadGathertown();
-        this.initPanelTabs();
 
         this.resize();
         window.addEventListener('resize', this.resize.bind(this));
@@ -105,33 +104,12 @@ class IeeeVisStream {
         return this.getCurrentStage()?.youtubeId;
     }
 
-    initPanelTabs() {
-        /*const getToggle = (tabName: PANEL_TAB) => () => {
-            console.log(tabName);
-            this.currentPanelTab = tabName;
-            this.updatePanelTabs();
-        };
-
-        document.getElementById('discord-tab-link')!.onclick = getToggle('discord');
-        document.getElementById('slido-tab-link')!.onclick = getToggle('slido');*/
-    }
-
-    updatePanelTabs() {
-        /*document.getElementById('discord-tab-link')!.className = '';
-        document.getElementById('slido-tab-link')!.className = '';
-        document.getElementById(`${this.currentPanelTab}-tab-link`)!.className = 'active';
-
-        document.getElementById('discord-wrap')!.className = '';
-        document.getElementById('slido-wrap')!.className = '';
-        document.getElementById(`${this.currentPanelTab}-wrap`)!.className = 'active';*/
-    }
-
     resize() {
         this.width = window.innerWidth;
         this.height = window.innerHeight - 65; // 40px for title
 
         const state = this.getCurrentStage()?.state;
-        const secondaryContentHeightPercent = 35;
+        const secondaryContentHeightPercent = 0;//35;
 
         if(state === "SOCIALIZING") {
             // Show gathertown, hide YouTube
@@ -154,27 +132,23 @@ class IeeeVisStream {
         gatherFrame.setAttribute('width', `${contentWidth}`);
         gatherFrame.setAttribute('height', `${mainContentHeight}`);
 
-        const secondaryContentHeight = (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * secondaryContentHeightPercent / 100;
-        const secondaryContentFrame = document.getElementById('secondary-content')!;
-        secondaryContentFrame.setAttribute('width', `${contentWidth}`);
-        secondaryContentFrame.setAttribute('height', `${secondaryContentHeight}`);
-
-
-        // this.currentPanelTab = state === "QA" ? "slido" : "discord";
-        // this.updatePanelTabs();
         const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
+        const panelHeight = this.height - IeeeVisStream.HEADERS_HEIGHT;
+        const qaHeightPercent = state === "QA" ? 60 : 40;
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
-        const slidoFrame = document.getElementById('slido-frame');
+        const slidoFrame = document.getElementById('slido-frame')!;
+        const slidoHeight = qaHeightPercent / 100 * panelHeight + 100; // 100 offset for the top bar. Must match CSS.
+
         if(slidoFrame) {
-            slidoFrame.setAttribute('width', `${contentWidth}`);
-            slidoFrame.setAttribute('height', `${secondaryContentHeight}`);
+            slidoFrame.setAttribute('width', `${panelWidth}`);
+            slidoFrame.setAttribute('height', `${slidoHeight}`);
         }
 
         const discordFrame = document.getElementById('discord-iframe');
         if(discordFrame) {
             discordFrame.setAttribute('width', `${panelWidth}`);
-            discordFrame.setAttribute('height', `${this.height - IeeeVisStream.HEADERS_HEIGHT}`);
+            discordFrame.setAttribute('height', `${(100 - qaHeightPercent) / 100 * panelHeight}`);
         }
     }
 }

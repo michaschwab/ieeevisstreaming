@@ -160,7 +160,6 @@
       this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.loadGathertown();
-      this.initPanelTabs();
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
     }
@@ -217,15 +216,11 @@
     getCurrentVideoId() {
       return this.getCurrentStage()?.youtubeId;
     }
-    initPanelTabs() {
-    }
-    updatePanelTabs() {
-    }
     resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight - 65;
       const state = this.getCurrentStage()?.state;
-      const secondaryContentHeightPercent = 35;
+      const secondaryContentHeightPercent = 0;
       if (state === "SOCIALIZING") {
         document.getElementById("youtube-outer").style.display = "none";
         document.getElementById("gathertown-outer").style.display = "block";
@@ -241,21 +236,20 @@
       const gatherFrame = document.getElementById("gathertown-iframe");
       gatherFrame.setAttribute("width", `${contentWidth}`);
       gatherFrame.setAttribute("height", `${mainContentHeight}`);
-      const secondaryContentHeight = (this.height - _IeeeVisStream.HEADERS_HEIGHT * 2) * secondaryContentHeightPercent / 100;
-      const secondaryContentFrame = document.getElementById("secondary-content");
-      secondaryContentFrame.setAttribute("width", `${contentWidth}`);
-      secondaryContentFrame.setAttribute("height", `${secondaryContentHeight}`);
       const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
+      const panelHeight = this.height - _IeeeVisStream.HEADERS_HEIGHT;
+      const qaHeightPercent = state === "QA" ? 60 : 40;
       document.getElementById("sidepanel").style.width = `${panelWidth}px`;
       const slidoFrame = document.getElementById("slido-frame");
+      const slidoHeight = qaHeightPercent / 100 * panelHeight + 100;
       if (slidoFrame) {
-        slidoFrame.setAttribute("width", `${contentWidth}`);
-        slidoFrame.setAttribute("height", `${secondaryContentHeight}`);
+        slidoFrame.setAttribute("width", `${panelWidth}`);
+        slidoFrame.setAttribute("height", `${slidoHeight}`);
       }
       const discordFrame = document.getElementById("discord-iframe");
       if (discordFrame) {
         discordFrame.setAttribute("width", `${panelWidth}`);
-        discordFrame.setAttribute("height", `${this.height - _IeeeVisStream.HEADERS_HEIGHT}`);
+        discordFrame.setAttribute("height", `${(100 - qaHeightPercent) / 100 * panelHeight}`);
       }
     }
   };

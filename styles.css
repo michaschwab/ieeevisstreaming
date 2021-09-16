@@ -1,8 +1,6 @@
 * {
     box-sizing: border-box;
 }
-/*
-#ytplayer {pointer-events: none;}*/
 
 td, th {
     padding: 8px 12px;
@@ -34,15 +32,11 @@ button {
     justify-content: space-between;
 }
 
+#discord-wrap {
+    position: relative; /* So that it appears on top of the slido frame */
+}
 #slido-frame {
-    /*margin-top: -100px;*/
-}
-
-.panel-tab-contents > * {
-    display: none;
-}
-.panel-tab-contents > div.active {
-    display: inherit;
+    margin-top: -100px;
 }
 
 header {
