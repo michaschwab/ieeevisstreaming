@@ -51,41 +51,14 @@ header {
     margin: 0;
 }
 
-#panel-header {
-    padding: 0 20px;
+#sidepanel header {
+    /*padding: 0 20px;*/
+    position: relative;
 }
-#panel-header ul {
+
+h3 {
     margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
 }
-
-#panel-header li a {
-    display: block;
-    padding: 8px 26px;
-    background: #bbb;
-    margin-right: 8px;
-    margin-top: 5px;
-    font-size: 16px;
-    font-family: Arial;
-    border: 1px solid #ccc;
-    border-bottom: none;
-    border-top-left-radius: 7px;
-    border-top-right-radius: 7px;
-    cursor: pointer;
-    color: #fff;
-}
-
-#panel-header li a.active {
-    cursor: default;
-    pointer-events: none;
-    background: #fff;
-    color: #333;
-}
-
-/* Match Q&A header color with Slido */
-#panel-header li:nth-child(2) a.active {
-    background: #2A56A7;
-    color: #fff;
+iframe {
+    border: 0;
 }

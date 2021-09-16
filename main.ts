@@ -15,7 +15,7 @@ class IeeeVisStream {
     db: IeeeVisDb;
 
     width = window.innerWidth;
-    height = window.innerHeight;
+    height = window.innerHeight; // Placeholder values. Will be replaced in the resize function.
 
     CHAT_WIDTH_PERCENT = 40;
     CHAT_PADDING_LEFT_PX = 20;
@@ -106,10 +106,9 @@ class IeeeVisStream {
 
     resize() {
         this.width = window.innerWidth;
-        this.height = window.innerHeight - 65; // 40px for title
+        this.height = window.innerHeight - 95; // 80px for title (remove for embed version)
 
         const state = this.getCurrentStage()?.state;
-        const secondaryContentHeightPercent = 0;//35;
 
         if(state === "SOCIALIZING") {
             // Show gathertown, hide YouTube
@@ -122,7 +121,7 @@ class IeeeVisStream {
         }
 
         const contentWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
-        const mainContentHeight = (this.height - IeeeVisStream.HEADERS_HEIGHT * 2) * (100 - secondaryContentHeightPercent) / 100;
+        const mainContentHeight = this.height - IeeeVisStream.HEADERS_HEIGHT;
 
         const contentWrap = document.getElementById(IeeeVisStream.CONTENT_WRAPPER_ID)!;
         contentWrap.style.width = `${contentWidth}px`;
@@ -133,7 +132,7 @@ class IeeeVisStream {
         gatherFrame.setAttribute('height', `${mainContentHeight}`);
 
         const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
-        const panelHeight = this.height - IeeeVisStream.HEADERS_HEIGHT;
+        const panelHeight = this.height - IeeeVisStream.HEADERS_HEIGHT * 2;
         const qaHeightPercent = state === "QA" ? 60 : 40;
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
@@ -143,12 +142,14 @@ class IeeeVisStream {
         if(slidoFrame) {
             slidoFrame.setAttribute('width', `${panelWidth}`);
             slidoFrame.setAttribute('height', `${slidoHeight}`);
+            document.getElementById('slido-wrap')!.style.height = `${slidoHeight - 100}px`;
         }
 
         const discordFrame = document.getElementById('discord-iframe');
         if(discordFrame) {
             discordFrame.setAttribute('width', `${panelWidth}`);
             discordFrame.setAttribute('height', `${(100 - qaHeightPercent) / 100 * panelHeight}`);
+            document.getElementById('discord-wrap')!.style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
         }
     }
 }
