@@ -32,8 +32,8 @@ button {
     justify-content: space-between;
 }
 
-#discord-wrap {
-    position: relative; /* So that it appears on top of the slido frame */
+#slido-wrap {
+    overflow: hidden;
 }
 #slido-frame {
     margin-top: -100px;
@@ -49,11 +49,6 @@ header {
 }
 #track-title {
     margin: 0;
-}
-
-#sidepanel header {
-    /*padding: 0 20px;*/
-    position: relative;
 }
 
 h3 {
