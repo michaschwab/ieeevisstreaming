@@ -155,13 +155,14 @@
       this.height = window.innerHeight;
       this.CHAT_WIDTH_PERCENT = 40;
       this.CHAT_PADDING_LEFT_PX = 20;
-      this.currentPanelTab = "discord";
+      this.currentPanelFocus = "none";
       this.db = new IeeeVisDb();
       this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.loadGathertown();
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
+      this.checkPanelFocus();
     }
     onYouTubeIframeAPIReady() {
       this.player.onYouTubeIframeAPIReady();
@@ -176,6 +177,21 @@
     loadSlido() {
       const frame = document.getElementById("slido-frame");
       frame.setAttribute("src", `https://app.sli.do/event/${this.currentSession.slido}`);
+    }
+    checkPanelFocus() {
+      window.setInterval(() => {
+        const lastFocus = this.currentPanelFocus;
+        if (document.activeElement == document.getElementById("discord-iframe")) {
+          this.currentPanelFocus = "chat";
+        } else if (document.activeElement == document.getElementById("slido-frame")) {
+          this.currentPanelFocus = "qa";
+        } else {
+          this.currentPanelFocus = "none";
+        }
+        if (lastFocus != this.currentPanelFocus) {
+          this.resize();
+        }
+      }, 200);
     }
     loadGathertown() {
       const html = `<iframe title="gather town"
@@ -237,7 +253,12 @@
       gatherFrame.setAttribute("height", `${mainContentHeight}`);
       const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
       const panelHeight = this.height - _IeeeVisStream.HEADERS_HEIGHT * 2;
-      const qaHeightPercent = state === "QA" ? 60 : 40;
+      let qaHeightPercent = state === "QA" ? 60 : 40;
+      if (this.currentPanelFocus === "qa") {
+        qaHeightPercent = 66;
+      } else if (this.currentPanelFocus === "chat") {
+        qaHeightPercent = 33;
+      }
       document.getElementById("sidepanel").style.width = `${panelWidth}px`;
       const slidoFrame = document.getElementById("slido-frame");
       const slidoHeight = qaHeightPercent / 100 * panelHeight + 100;
