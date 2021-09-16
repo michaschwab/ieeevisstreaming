@@ -166,14 +166,14 @@ class IeeeVisStream {
 
         if(slidoFrame) {
             slidoFrame.setAttribute('width', `${panelWidth}`);
-            slidoFrame.setAttribute('height', `${slidoHeight}`);
+            slidoFrame.style.height = `${slidoHeight}px`;
             document.getElementById('slido-wrap')!.style.height = `${slidoHeight - 100}px`;
         }
 
         const discordFrame = document.getElementById('discord-iframe');
         if(discordFrame) {
             discordFrame.setAttribute('width', `${panelWidth}`);
-            discordFrame.setAttribute('height', `${(100 - qaHeightPercent) / 100 * panelHeight}`);
+            discordFrame.style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
             document.getElementById('discord-wrap')!.style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
         }
     }

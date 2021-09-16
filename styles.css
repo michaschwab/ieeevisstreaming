@@ -62,3 +62,6 @@ h3 {
 iframe {
     border: 0;
 }
+#sidepanel * {
+    transition: height ease 300ms;
+}
