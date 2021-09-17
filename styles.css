@@ -1,6 +1,10 @@
 * {
     box-sizing: border-box;
 }
+h1, h2, h3, h4 {
+    font-family: "Zilla Slab SemiBold", serif;
+    color: rgb(111, 33, 132);
+}
 
 td, th {
     padding: 8px 12px;
@@ -40,12 +44,12 @@ button {
 }
 
 header {
-    background: #ffeaea;
+    /*background: #ffeaea;*/
     height: 40px;
     display: block;
     font-size: 16px;
     font-family: Arial;
-    padding: 11px 20px;
+    padding: 11px 0;
 }
 #track-title {
     margin: 0;

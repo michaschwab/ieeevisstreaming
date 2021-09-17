@@ -153,8 +153,9 @@
       this.ROOM_ID = ROOM_ID;
       this.width = window.innerWidth;
       this.height = window.innerHeight;
-      this.CHAT_WIDTH_PERCENT = 40;
+      this.PANEL_WIDTH_PERCENT = 40;
       this.CHAT_PADDING_LEFT_PX = 20;
+      this.HORIZONTAL_PADDING = 30;
       this.currentPanelFocus = "none";
       this.db = new IeeeVisDb();
       this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
@@ -212,8 +213,6 @@
       const lastSession = this.currentSession ? {...this.currentSession} : void 0;
       const lastYtId = this.getCurrentVideoId();
       this.currentSession = session;
-      document.getElementById("room-title").innerText = this.room.name;
-      document.getElementById("session-title").innerText = this.currentSession.name;
       document.getElementById("video-name").innerText = this.getCurrentStage()?.title || "";
       if (this.getCurrentVideoId() != lastYtId) {
         this.player.updateVideo();
@@ -234,7 +233,7 @@
     }
     resize() {
       this.width = window.innerWidth;
-      this.height = window.innerHeight - 95;
+      this.height = window.innerHeight - 15;
       const state = this.getCurrentStage()?.state;
       if (state === "SOCIALIZING") {
         document.getElementById("youtube-outer").style.display = "none";
@@ -243,7 +242,7 @@
         document.getElementById("youtube-outer").style.display = "block";
         document.getElementById("gathertown-outer").style.display = "none";
       }
-      const contentWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
+      const contentWidth = this.width * (100 - this.PANEL_WIDTH_PERCENT) / 100 - this.HORIZONTAL_PADDING;
       const mainContentHeight = this.height - _IeeeVisStream.HEADERS_HEIGHT;
       const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
       contentWrap.style.width = `${contentWidth}px`;
@@ -251,7 +250,7 @@
       const gatherFrame = document.getElementById("gathertown-iframe");
       gatherFrame.setAttribute("width", `${contentWidth}`);
       gatherFrame.setAttribute("height", `${mainContentHeight}`);
-      const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
+      const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
       const panelHeight = this.height - _IeeeVisStream.HEADERS_HEIGHT * 2;
       let qaHeightPercent = state === "QA" ? 60 : 40;
       if (this.currentPanelFocus === "qa") {

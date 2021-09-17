@@ -17,9 +17,10 @@ class IeeeVisStream {
     width = window.innerWidth;
     height = window.innerHeight; // Placeholder values. Will be replaced in the resize function.
 
-    CHAT_WIDTH_PERCENT = 40;
+    PANEL_WIDTH_PERCENT = 40;
     CHAT_PADDING_LEFT_PX = 20;
     static HEADERS_HEIGHT = 40;
+    HORIZONTAL_PADDING = 30;
 
     currentPanelFocus: PANEL_FOCUS = "none";
 
@@ -99,8 +100,8 @@ class IeeeVisStream {
         const lastYtId = this.getCurrentVideoId();
         this.currentSession = session;
 
-        document.getElementById('room-title')!.innerText = this.room!.name;
-        document.getElementById('session-title')!.innerText = this.currentSession.name;
+        //document.getElementById('room-title')!.innerText = this.room!.name;
+        //document.getElementById('session-title')!.innerText = this.currentSession.name;
         document.getElementById('video-name')!.innerText = this.getCurrentStage()?.title || '';
 
         if(this.getCurrentVideoId() != lastYtId) {
@@ -126,7 +127,7 @@ class IeeeVisStream {
 
     resize() {
         this.width = window.innerWidth;
-        this.height = window.innerHeight - 95; // 80px for title (remove for embed version)
+        this.height = window.innerHeight - 15;
 
         const state = this.getCurrentStage()?.state;
 
@@ -140,7 +141,7 @@ class IeeeVisStream {
             document.getElementById('gathertown-outer')!.style.display = 'none';
         }
 
-        const contentWidth = this.width * (100 - this.CHAT_WIDTH_PERCENT) / 100;
+        const contentWidth = this.width * (100 - this.PANEL_WIDTH_PERCENT) / 100 - this.HORIZONTAL_PADDING;
         const mainContentHeight = this.height - IeeeVisStream.HEADERS_HEIGHT;
 
         const contentWrap = document.getElementById(IeeeVisStream.CONTENT_WRAPPER_ID)!;
@@ -151,7 +152,7 @@ class IeeeVisStream {
         gatherFrame.setAttribute('width', `${contentWidth}`);
         gatherFrame.setAttribute('height', `${mainContentHeight}`);
 
-        const panelWidth = this.width * this.CHAT_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
+        const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
         const panelHeight = this.height - IeeeVisStream.HEADERS_HEIGHT * 2;
         let qaHeightPercent = state === "QA" ? 60 : 40;
         if(this.currentPanelFocus === "qa") {
