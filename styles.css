@@ -64,3 +64,11 @@ iframe {
 #sidepanel * {
     transition: height ease 300ms;
 }
+
+@font-face{
+    font-family:"Zilla Slab SemiBold";
+    font-style:normal;
+    font-weight:700;
+    font-display:swap;
+    src:local("Zilla Slab SemiBold"),local("Zilla-Slab-SemiBold"),url("ZillaSlab-SemiBold.ttf") format("truetype");
+}
