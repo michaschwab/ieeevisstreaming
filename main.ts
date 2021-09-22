@@ -33,6 +33,7 @@ class IeeeVisStream {
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
 
         this.loadGathertown();
+        this.loadPreviewImage();
 
         this.resize();
         window.addEventListener('resize', this.resize.bind(this));
@@ -85,6 +86,14 @@ class IeeeVisStream {
         gatherWrap.innerHTML = html;
     }
 
+    loadPreviewImage() {
+        console.log('loading preview', this.getCurrentStage()?.imageUrl);
+        const url = this.getCurrentStage()?.imageUrl;
+        const html = !url ? '' : `<img src="${url}"  alt="Preview Image" />`;
+        const previewWrap = document.getElementById('image-outer')!;
+        previewWrap.innerHTML = html;
+    }
+
     onRoomUpdated(room: Room) {
         this.room = room;
 
@@ -114,11 +123,19 @@ class IeeeVisStream {
         if(this.currentSession.slido != lastSession?.slido) {
             this.loadSlido();
         }
+        console.log('img', this.getCurrentStage()?.imageUrl, this.getCurrentStage(lastSession)?.imageUrl)
+        if(this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
+            this.loadPreviewImage();
+        }
         this.resize();
     }
 
     getCurrentStage(): SessionStage | undefined {
-        return this.currentSession?.stages[this.currentSession?.currentStatus?.videoIndex];
+        return this.getCurrentStageOfSession(this.currentSession);
+    }
+
+    getCurrentStageOfSession(session: Session | undefined) {
+        return session?.stages[session?.currentStatus?.videoIndex];
     }
 
     getCurrentVideoId() {
@@ -134,10 +151,17 @@ class IeeeVisStream {
         if(state === "SOCIALIZING") {
             // Show gathertown, hide YouTube
             document.getElementById('youtube-outer')!.style.display = 'none';
-            document.getElementById('gathertown-outer')!.style.display = 'block';
+            document.getElementById('image-outer')!.style.display = 'none';
+            document.getElementById('gathertown-outer')!.style.display = '';
+
+        } else if(state === "PREVIEW") {
+            document.getElementById('youtube-outer')!.style.display = 'none';
+            document.getElementById('image-outer')!.style.display = '';
+            document.getElementById('gathertown-outer')!.style.display = 'none';
         } else {
             // Hide gathertown, show YouTube
-            document.getElementById('youtube-outer')!.style.display = 'block';
+            document.getElementById('youtube-outer')!.style.display = '';
+            document.getElementById('image-outer')!.style.display = 'none';
             document.getElementById('gathertown-outer')!.style.display = 'none';
         }
 

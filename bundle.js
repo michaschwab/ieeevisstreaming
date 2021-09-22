@@ -161,6 +161,7 @@
       this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.loadGathertown();
+      this.loadPreviewImage();
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
       this.checkPanelFocus();
@@ -202,6 +203,13 @@
       const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
       gatherWrap.innerHTML = html;
     }
+    loadPreviewImage() {
+      console.log("loading preview", this.getCurrentStage()?.imageUrl);
+      const url = this.getCurrentStage()?.imageUrl;
+      const html = !url ? "" : `<img src="${url}"  alt="Preview Image" />`;
+      const previewWrap = document.getElementById("image-outer");
+      previewWrap.innerHTML = html;
+    }
     onRoomUpdated(room) {
       this.room = room;
       this.db.loadSession(room.currentSession, (session) => this.onSessionUpdated(room.currentSession, session));
@@ -223,10 +231,17 @@
       if (this.currentSession.slido != lastSession?.slido) {
         this.loadSlido();
       }
+      console.log("img", this.getCurrentStage()?.imageUrl, this.getCurrentStage(lastSession)?.imageUrl);
+      if (this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
+        this.loadPreviewImage();
+      }
       this.resize();
     }
     getCurrentStage() {
-      return this.currentSession?.stages[this.currentSession?.currentStatus?.videoIndex];
+      return this.getCurrentStageOfSession(this.currentSession);
+    }
+    getCurrentStageOfSession(session) {
+      return session?.stages[session?.currentStatus?.videoIndex];
     }
     getCurrentVideoId() {
       return this.getCurrentStage()?.youtubeId;
@@ -237,9 +252,15 @@
       const state = this.getCurrentStage()?.state;
       if (state === "SOCIALIZING") {
         document.getElementById("youtube-outer").style.display = "none";
-        document.getElementById("gathertown-outer").style.display = "block";
+        document.getElementById("image-outer").style.display = "none";
+        document.getElementById("gathertown-outer").style.display = "";
+      } else if (state === "PREVIEW") {
+        document.getElementById("youtube-outer").style.display = "none";
+        document.getElementById("image-outer").style.display = "";
+        document.getElementById("gathertown-outer").style.display = "none";
       } else {
-        document.getElementById("youtube-outer").style.display = "block";
+        document.getElementById("youtube-outer").style.display = "";
+        document.getElementById("image-outer").style.display = "none";
         document.getElementById("gathertown-outer").style.display = "none";
       }
       const contentWidth = this.width * (100 - this.PANEL_WIDTH_PERCENT) / 100 - this.HORIZONTAL_PADDING;

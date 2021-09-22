@@ -65,6 +65,16 @@ iframe {
     transition: height ease 300ms;
 }
 
+#main-content {
+    height: 100%;
+}
+#image-outer {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 @font-face{
     font-family:"Zilla Slab SemiBold";
     font-style:normal;
