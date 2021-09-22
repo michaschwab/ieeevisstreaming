@@ -1,10 +1,11 @@
-import {Room, Session} from "./session";
+import {AdminsData, Room, Session} from "./session";
 
 declare var firebase: Firebase;
 
 export class IeeeVisDb {
     private sessionRef?: FirebaseRef;
     private roomRef?: FirebaseRef;
+    private adminsRef?: FirebaseRef;
 
     constructor() {
         this.initFirebase();
@@ -37,6 +38,14 @@ export class IeeeVisDb {
 
         this.sessionRef!.on('value', (snapshot) => {
             onSessionUpdated(snapshot.val() as Session);
+        });
+    }
+
+    loadAdmins(callback: (adminsData: AdminsData) => void) {
+        this.adminsRef = firebase.database().ref('admins');
+
+        this.adminsRef!.on('value', (snapshot) => {
+            callback(snapshot.val() as AdminsData);
         });
     }
 

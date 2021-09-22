@@ -1,12 +1,10 @@
-import {Session} from "./session";
+import {Session, User} from "./session";
 
 declare var firebase;
 declare var firebaseui;
 
 export class IeeeVisAuth {
-    private user?: User;
-
-    constructor(private location: Location) {
+    constructor(private onUser: (user?: User) => void) {
         this.initFirebaseUi();
         this.initUi();
         this.trackAuthState();
@@ -14,7 +12,7 @@ export class IeeeVisAuth {
 
     initFirebaseUi() {
         var uiConfig = {
-            signInSuccessUrl: this.location,
+            signInSuccessUrl: location,
             signInOptions: [
                 // Leave the lines as is for the providers you want to offer your users.
                 firebase.auth.GoogleAuthProvider.PROVIDER_ID,
@@ -40,23 +38,17 @@ export class IeeeVisAuth {
     trackAuthState() {
         firebase.auth().onAuthStateChanged((user?: User) => {
             if(user) {
-                console.log('logged in', user);
-                this.user = user;
                 document.getElementById('welcome')!.style.display = '';
-                document.getElementById('displayName')!.innerText = this.user.displayName;
+                document.getElementById('displayName')!.innerText = user.displayName;
                 document.getElementById('firebaseui-auth-container')!.style.display = 'none';
+
             } else {
-                console.log('not logged in');
                 document.getElementById('firebaseui-auth-container')!.style.display = '';
                 document.getElementById('welcome')!.style.display = 'none';
                 document.getElementById('displayName')!.innerText = '';
-                this.user = undefined;
             }
+            this.onUser(user);
         });
     }
 }
 
-interface User {
-    displayName: string;
-    email: string;
-}

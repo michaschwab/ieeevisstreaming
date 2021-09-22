@@ -29,6 +29,12 @@
         onSessionUpdated(snapshot.val());
       });
     }
+    loadAdmins(callback) {
+      this.adminsRef = firebase.database().ref("admins");
+      this.adminsRef.on("value", (snapshot) => {
+        callback(snapshot.val());
+      });
+    }
     set(path, value) {
       this.sessionRef?.child(path).set(value);
     }
@@ -39,15 +45,15 @@
 
   // auth.ts
   var IeeeVisAuth = class {
-    constructor(location2) {
-      this.location = location2;
+    constructor(onUser) {
+      this.onUser = onUser;
       this.initFirebaseUi();
       this.initUi();
       this.trackAuthState();
     }
     initFirebaseUi() {
       var uiConfig = {
-        signInSuccessUrl: this.location,
+        signInSuccessUrl: location,
         signInOptions: [
           firebase.auth.GoogleAuthProvider.PROVIDER_ID
         ],
@@ -66,18 +72,15 @@
     trackAuthState() {
       firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-          console.log("logged in", user);
-          this.user = user;
           document.getElementById("welcome").style.display = "";
-          document.getElementById("displayName").innerText = this.user.displayName;
+          document.getElementById("displayName").innerText = user.displayName;
           document.getElementById("firebaseui-auth-container").style.display = "none";
         } else {
-          console.log("not logged in");
           document.getElementById("firebaseui-auth-container").style.display = "";
           document.getElementById("welcome").style.display = "none";
           document.getElementById("displayName").innerText = "";
-          this.user = void 0;
         }
+        this.onUser(user);
       });
     }
   };
@@ -88,11 +91,15 @@
       this.SESSION_ID = SESSION_ID;
       this.db = new IeeeVisDb();
       this.db.loadSession(SESSION_ID, (session) => this.onSessionUpdated(session));
-      new IeeeVisAuth(location);
+      new IeeeVisAuth(this.onUserUpdated.bind(this));
       document.getElementById("previous-video-button").onclick = this.previousVideo.bind(this);
       document.getElementById("next-video-button").onclick = this.nextVideo.bind(this);
       document.getElementById("session-to-room-button").onclick = this.sessionToRoom.bind(this);
       setInterval(this.updateTable.bind(this), 1e3);
+      this.db.loadAdmins((admins) => {
+        this.admins = admins;
+        this.onUserUpdated(this.user);
+      });
     }
     onSessionUpdated(session) {
       this.session = session;
@@ -107,8 +114,18 @@
       document.getElementById("room-name").innerText = room.name;
       document.getElementById("room-currentsession").innerText = room.currentSession;
     }
+    onUserUpdated(user) {
+      this.user = user;
+      document.getElementById("uid").innerText = this.user?.uid || "-";
+      if (this.user && this.admins && this.admins.hasOwnProperty(this.user.uid)) {
+        document.getElementById("access-alert").style.display = "none";
+      } else {
+        document.getElementById("access-alert").style.display = "";
+      }
+      this.updateTable();
+    }
     updateTable() {
-      if (!this.session) {
+      if (!this.session || !this.user || !this.admins || !this.admins.hasOwnProperty(this.user.uid)) {
         return;
       }
       const tableBody = document.getElementById("videos-table-body");

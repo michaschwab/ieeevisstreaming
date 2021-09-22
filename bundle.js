@@ -29,6 +29,12 @@
         onSessionUpdated(snapshot.val());
       });
     }
+    loadAdmins(callback) {
+      this.adminsRef = firebase.database().ref("admins");
+      this.adminsRef.on("value", (snapshot) => {
+        callback(snapshot.val());
+      });
+    }
     set(path, value) {
       this.sessionRef?.child(path).set(value);
     }

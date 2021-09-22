@@ -1,22 +1,29 @@
-import {Room, Session} from "./session";
+import {AdminsData, Room, Session, User} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisAuth} from "./auth";
 
 class IeeeVisStreamAdmin {
     session?: Session;
     db: IeeeVisDb;
+    admins?: AdminsData;
+    user?: User;
 
     constructor(private SESSION_ID: string) {
         this.db = new IeeeVisDb();
         this.db.loadSession(SESSION_ID, session => this.onSessionUpdated(session));
 
-        new IeeeVisAuth(location);
+        new IeeeVisAuth(this.onUserUpdated.bind(this));
 
         document.getElementById('previous-video-button')!.onclick = this.previousVideo.bind(this);
         document.getElementById('next-video-button')!.onclick = this.nextVideo.bind(this);
         document.getElementById('session-to-room-button')!.onclick = this.sessionToRoom.bind(this);
 
         setInterval(this.updateTable.bind(this), 1000);
+
+        this.db.loadAdmins(admins => {
+            this.admins = admins;
+            this.onUserUpdated(this.user);
+        });
     }
 
     onSessionUpdated(session: Session) {
@@ -37,8 +44,20 @@ class IeeeVisStreamAdmin {
         document.getElementById('room-currentsession')!.innerText = room.currentSession;
     }
 
+    onUserUpdated(user?: User) {
+        this.user = user;
+        document.getElementById('uid')!.innerText = this.user?.uid || '-';
+
+        if(this.user && this.admins && this.admins.hasOwnProperty(this.user.uid)) {
+            document.getElementById('access-alert')!.style.display = 'none';
+        } else {
+            document.getElementById('access-alert')!.style.display = '';
+        }
+        this.updateTable();
+    }
+
     updateTable() {
-        if(!this.session) {
+        if(!this.session || !this.user || !this.admins || !this.admins.hasOwnProperty(this.user.uid)) {
             return;
         }
 

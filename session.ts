@@ -33,3 +33,13 @@ export interface SessionStage {
 }
 
 export type SessionState = "WATCHING" | "QA" | "SOCIALIZING" | "PREVIEW";
+
+export interface AdminsData {
+    [uid: string]: string;
+}
+
+export interface User {
+    displayName: string;
+    email: string;
+    uid: string;
+}
