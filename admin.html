@@ -9,7 +9,14 @@
     <h2>Admin Panel:</h2>
     <h1 id="track-title"></h1>
 
-    <div id="firebaseui-auth-container"></div>
+    <div id="auth">
+        <div id="firebaseui-auth-container"></div>
+        <div id="welcome">
+            <h3>Welcome, <span id="displayName"></span>!</h3>
+            <a href="#" id="sign-out">Log out</a>
+        </div>
+    </div>
+
 
     <div id="videos">
 
@@ -74,7 +81,7 @@ eventually, think about logs
 <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/5.0.0/firebase-ui-auth.js"></script>
 
 <script src="admin-bundle.js"></script>
 </body>

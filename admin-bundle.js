@@ -39,12 +39,15 @@
 
   // auth.ts
   var IeeeVisAuth = class {
-    constructor() {
+    constructor(location2) {
+      this.location = location2;
       this.initFirebaseUi();
+      this.initUi();
+      this.trackAuthState();
     }
     initFirebaseUi() {
       var uiConfig = {
-        signInSuccessUrl: "http://localhost:8080/admin",
+        signInSuccessUrl: this.location,
         signInOptions: [
           firebase.auth.GoogleAuthProvider.PROVIDER_ID
         ],
@@ -54,6 +57,29 @@
       var ui = new firebaseui.auth.AuthUI(firebase.auth());
       ui.start("#firebaseui-auth-container", uiConfig);
     }
+    initUi() {
+      document.getElementById("welcome").style.display = "none";
+      document.getElementById("sign-out").addEventListener("click", function() {
+        firebase.auth().signOut();
+      });
+    }
+    trackAuthState() {
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          console.log("logged in", user);
+          this.user = user;
+          document.getElementById("welcome").style.display = "";
+          document.getElementById("displayName").innerText = this.user.displayName;
+          document.getElementById("firebaseui-auth-container").style.display = "none";
+        } else {
+          console.log("not logged in");
+          document.getElementById("firebaseui-auth-container").style.display = "";
+          document.getElementById("welcome").style.display = "none";
+          document.getElementById("displayName").innerText = "";
+          this.user = void 0;
+        }
+      });
+    }
   };
 
   // main-admin.ts
@@ -62,7 +88,7 @@
       this.SESSION_ID = SESSION_ID;
       this.db = new IeeeVisDb();
       this.db.loadSession(SESSION_ID, (session) => this.onSessionUpdated(session));
-      new IeeeVisAuth();
+      new IeeeVisAuth(location);
       document.getElementById("previous-video-button").onclick = this.previousVideo.bind(this);
       document.getElementById("next-video-button").onclick = this.nextVideo.bind(this);
       document.getElementById("session-to-room-button").onclick = this.sessionToRoom.bind(this);

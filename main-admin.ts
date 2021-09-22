@@ -10,7 +10,7 @@ class IeeeVisStreamAdmin {
         this.db = new IeeeVisDb();
         this.db.loadSession(SESSION_ID, session => this.onSessionUpdated(session));
 
-        new IeeeVisAuth();
+        new IeeeVisAuth(location);
 
         document.getElementById('previous-video-button')!.onclick = this.previousVideo.bind(this);
         document.getElementById('next-video-button')!.onclick = this.nextVideo.bind(this);
