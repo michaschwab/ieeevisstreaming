@@ -5,6 +5,8 @@ export interface Session {
     rocketchat: string;
     slido: string;
     room: string;
+    time_start: string;
+    time_end: string;
     stages: {
         [index: string]: SessionStage;
     };
@@ -26,6 +28,8 @@ export interface SessionStage {
     youtubeId?: string;
     imageUrl?: string;
     state: SessionState;
+    time_start?: string;
+    time_end?: string;
 }
 
 export type SessionState = "WATCHING" | "QA" | "SOCIALIZING" | "PREVIEW";

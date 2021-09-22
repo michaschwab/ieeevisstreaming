@@ -54,15 +54,30 @@ class IeeeVisStreamAdmin {
             const timePlayed = !active ? '-' : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
             const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
             const imgUrl = stage.imageUrl;
+            let duration = '';
+            const startText = !stage.time_start ? '' :
+                new Date(stage.time_start).toISOString().substr(0, 16).replace('T', ', ');
+
+            if(stage.time_start && stage.time_end) {
+                const start = new Date(stage.time_start);
+                const end = new Date(stage.time_end);
+                const durationMs = end.getTime() - start.getTime();
+                duration = new Date(durationMs).toISOString().substr(11, 8)
+            } else if(stage.live) {
+                duration = '(live)';
+            } else {
+                duration = '-';
+            }
 
             const tr = document.createElement('tr');
             tr.className = active ? 'active' : '';
             tr.innerHTML = `
                 <td>` +
-                (isPreview ? `<a href="${imgUrl}" target="_blank">[Image]</a>`
+                (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>`
                     : `<a href=${ytUrl}" target="_blank">${stage.title}</a>`) + `
                 </td>
-                <td>${stage.live ? "yes" : "-"}</td>
+                <td>${startText}</td>
+                <td>${duration}</td>
                 <td>${timePlayed}</td>
                 <td>${stage.state}</td>`;
 
