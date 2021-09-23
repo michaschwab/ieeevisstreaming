@@ -1,7 +1,7 @@
 import {Session, User} from "./session";
 
-declare var firebase;
-declare var firebaseui;
+declare var firebase: Firebase;
+declare var firebaseui: FirebaseUiApi;
 
 export class IeeeVisAuth {
     constructor(private onUser: (user?: User) => void) {
@@ -23,7 +23,7 @@ export class IeeeVisAuth {
         };
 
         // Initialize the FirebaseUI Widget using Firebase.
-        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+        const ui = new (firebaseui.auth.AuthUI(firebase.auth()));
         // The start method will wait until the DOM is loaded.
         ui.start('#firebaseui-auth-container', uiConfig);
     }
@@ -52,3 +52,29 @@ export class IeeeVisAuth {
     }
 }
 
+interface Firebase {
+    auth: FirebaseAuth;
+}
+
+interface FirebaseAuth {
+    (): FirebaseAuthInstance;
+    GoogleAuthProvider: {
+        PROVIDER_ID: string;
+    };
+}
+
+interface FirebaseAuthInstance {
+    signOut: () => void;
+    onAuthStateChanged: (callback: (user?: User) => void) => void;
+}
+
+interface FirebaseUiApi {
+    auth: {
+        AuthUI: (auth: FirebaseAuthInstance) => FirebaseUi;
+    }
+}
+
+interface FirebaseUi {
+    new(): any;
+    start: (selector: string, config: {}) => void;
+}

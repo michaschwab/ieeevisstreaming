@@ -123,7 +123,6 @@ class IeeeVisStream {
         if(this.currentSession.slido != lastSession?.slido) {
             this.loadSlido();
         }
-        console.log('img', this.getCurrentStage()?.imageUrl, this.getCurrentStage(lastSession)?.imageUrl)
         if(this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
             this.loadPreviewImage();
         }
