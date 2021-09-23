@@ -6,14 +6,13 @@
 
 
 <div id="wrapper" style="display: none">
-    <h2>Admin Panel:</h2>
-    <h1 id="track-title"></h1>
+    <h2>Admin Panel for Session: <span id="track-title"></span></h2>
 
     <div id="auth">
         <div id="firebaseui-auth-container"></div>
         <div id="welcome">
-            <h3>Welcome, <span id="displayName"></span>!</h3>
-            <a href="#" id="sign-out">Log out</a>
+            <h3>Welcome, <span id="displayName"></span>! <a href="#" id="sign-out">Log out</a></h3>
+
         </div>
     </div>
 
@@ -23,6 +22,13 @@
         <p>If you are supposed to have access, please reach out to tech@ieeevis.org.</p>
 
         <p>UID: <span id="uid"></span></p>
+    </div>
+
+    <div id="live-session-alert">
+        <p>
+            <span style="color: red">🔴</span>
+            This session is being streamed live in <span id="live-room-name"></span>
+        </p>
     </div>
 
 
@@ -61,25 +67,6 @@
 <div id="param-error" style="display: none">
     You are missing a session URL parameter. The URL should be [host]/admin?session=session1, for example.
 </div>
-
-<!--
-switch to video: choose video from list button,
-or "next video".
-
-implement: "next video" button, and "move live" for streams
-&lt;!&ndash;set start time of video&ndash;&gt;
-
-"Go to end of video" button for live stream?
-
-maybe not (yet):
-
-"override button?
-
-"make youtube video live" button? talking to backend, talking to youtube. might be able to automate.
-
-eventually, think about logs
--->
-
 
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>

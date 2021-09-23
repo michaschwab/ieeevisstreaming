@@ -86,6 +86,12 @@ iframe {
     background: #ddd;
 }
 
+#live-session-alert {
+    background: #fee;
+    font-size: 12pt;
+    padding: 10px 30px;
+}
+
 @font-face{
     font-family:"Zilla Slab SemiBold";
     font-style:normal;

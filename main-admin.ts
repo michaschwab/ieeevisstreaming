@@ -42,6 +42,12 @@ class IeeeVisStreamAdmin {
         }
         document.getElementById('room-name')!.innerText = room.name;
         document.getElementById('room-currentsession')!.innerText = room.currentSession;
+
+        const isLive = room.currentSession == this.SESSION_ID;
+        document.getElementById('live-session-alert')!.style.display = isLive ? 'block' : 'none';
+        document.getElementById('live-room-name')!.innerText = room.name;
+
+        document.getElementById('session-to-room-button')!.style.display = isLive ? 'none' : '';
     }
 
     onUserUpdated(user?: User) {
@@ -122,8 +128,6 @@ class IeeeVisStreamAdmin {
             videoStartTimestamp: new Date().getTime(),
             videoIndex: index
         });
-        /*this.db.set('currentStatus/videoStartTimestamp', new Date().getTime());
-        this.db.set('currentStatus/videoIndex', index);*/
         this.session!.currentStatus.videoStartTimestamp = new Date().getTime();
         this.session!.currentStatus.videoIndex = index;
         this.updateTable();
