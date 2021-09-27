@@ -23,7 +23,8 @@ export class IeeeVisAuth {
         };
 
         // Initialize the FirebaseUI Widget using Firebase.
-        const ui = new (firebaseui.auth.AuthUI(firebase.auth()));
+        // @ts-ignore
+        const ui = new firebaseui.auth.AuthUI(firebase.auth());
         // The start method will wait until the DOM is loaded.
         ui.start('#firebaseui-auth-container', uiConfig);
     }
