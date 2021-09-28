@@ -191,15 +191,20 @@ class IeeeVisStream {
         const qaWrap = document.getElementById('qa')!;
         qaWrap.style.display = qaShown ? '' : 'none';
 
-        let qaHeightPercent = qaShown ? 40 : 0;
-        if(state === "QA") {
-            qaHeightPercent = 60;
+        let qaHeightPercent = 0;
+        if(qaShown) {
+            qaHeightPercent = 40;
+
+            if(state === "QA") {
+                qaHeightPercent = 60;
+            }
+            if(this.currentPanelFocus === "qa") {
+                qaHeightPercent = 70;
+            } else if(this.currentPanelFocus === "chat") {
+                qaHeightPercent = 30;
+            }
         }
-        if(this.currentPanelFocus === "qa") {
-            qaHeightPercent = 70;
-        } else if(this.currentPanelFocus === "chat") {
-            qaHeightPercent = 30;
-        }
+
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
         const slidoFrame = document.getElementById('slido-frame')!;
