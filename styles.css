@@ -69,7 +69,6 @@ iframe {
     height: 100%;
 }
 #image-outer {
-    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;

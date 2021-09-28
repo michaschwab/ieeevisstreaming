@@ -230,7 +230,7 @@
       const lastSession = this.currentSession ? {...this.currentSession} : void 0;
       const lastYtId = this.getCurrentVideoId();
       this.currentSession = session;
-      document.getElementById("video-name").innerText = this.getCurrentStage()?.title || "";
+      document.getElementById("session-name").innerText = this.getCurrentStage()?.title || "";
       if (this.getCurrentVideoId() != lastYtId) {
         this.player.updateVideo();
       }
@@ -272,6 +272,7 @@
       this.player.setSize(contentWidth, mainContentHeight);
       const previewImg = document.getElementById("preview-img");
       if (previewImg) {
+        document.getElementById("image-outer").style.height = `${mainContentHeight}px`;
         previewImg.style.maxWidth = `${contentWidth}px`;
         previewImg.style.maxHeight = `${mainContentHeight}px`;
       }
@@ -279,7 +280,8 @@
       gatherFrame.setAttribute("width", `${contentWidth}`);
       gatherFrame.setAttribute("height", `${mainContentHeight}`);
       const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
-      const panelHeight = this.height - _IeeeVisStream.HEADERS_HEIGHT * 2;
+      const panelContentHeight = this.height - _IeeeVisStream.HEADERS_HEIGHT * 2;
+      console.log("panel height", panelContentHeight);
       let qaHeightPercent = state === "QA" ? 60 : 40;
       if (this.currentPanelFocus === "qa") {
         qaHeightPercent = 66;
@@ -288,17 +290,18 @@
       }
       document.getElementById("sidepanel").style.width = `${panelWidth}px`;
       const slidoFrame = document.getElementById("slido-frame");
-      const slidoHeight = qaHeightPercent / 100 * panelHeight + 0;
+      const slidoTopOffset = 0;
+      const slidoHeight = qaHeightPercent / 100 * panelContentHeight + slidoTopOffset;
       if (slidoFrame) {
         slidoFrame.setAttribute("width", `${panelWidth}`);
         slidoFrame.style.height = `${slidoHeight}px`;
-        document.getElementById("slido-wrap").style.height = `${slidoHeight - 100}px`;
+        document.getElementById("slido-wrap").style.height = `${slidoHeight - slidoTopOffset}px`;
       }
       const discordFrame = document.getElementById("discord-iframe");
       if (discordFrame) {
         discordFrame.setAttribute("width", `${panelWidth}`);
-        discordFrame.style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
-        document.getElementById("discord-wrap").style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
+        discordFrame.style.height = `${(100 - qaHeightPercent) / 100 * panelContentHeight}px`;
+        document.getElementById("discord-wrap").style.height = `${(100 - qaHeightPercent) / 100 * panelContentHeight}px`;
       }
     }
   };
@@ -306,7 +309,7 @@
   IeeeVisStream.PLAYER_ELEMENT_ID = "ytplayer";
   IeeeVisStream.CONTENT_WRAPPER_ID = "content";
   IeeeVisStream.GATHERTOWN_WRAPPER_ID = "gathertown";
-  IeeeVisStream.HEADERS_HEIGHT = 40;
+  IeeeVisStream.HEADERS_HEIGHT = 41;
   var roomId = location.search.indexOf("room=") === -1 ? "" : location.search.substr(location.search.indexOf("room=") + "room=".length);
   if (roomId) {
     const stream = new IeeeVisStream(roomId);

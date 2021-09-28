@@ -4,9 +4,9 @@
   "description": "",
   "main": "main.ts",
   "dependencies": {
-    "esbuild": "^0.11.4"
+    "esbuild": "^0.11.4",
+    "http-server": "^13.0.2"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "./node_modules/.bin/esbuild main.ts --bundle --sourcemap --outfile=bundle.js",

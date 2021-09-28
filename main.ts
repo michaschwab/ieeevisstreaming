@@ -19,7 +19,7 @@ class IeeeVisStream {
 
     PANEL_WIDTH_PERCENT = 40;
     CHAT_PADDING_LEFT_PX = 20;
-    static HEADERS_HEIGHT = 40;
+    static HEADERS_HEIGHT = 41;
     HORIZONTAL_PADDING = 30;
 
     currentPanelFocus: PANEL_FOCUS = "none";
@@ -115,7 +115,7 @@ class IeeeVisStream {
 
         //document.getElementById('room-title')!.innerText = this.room!.name;
         //document.getElementById('session-title')!.innerText = this.currentSession.name;
-        document.getElementById('video-name')!.innerText = this.getCurrentStage()?.title || '';
+        document.getElementById('session-name')!.innerText = this.getCurrentStage()?.title || '';
 
         if(this.getCurrentVideoId() != lastYtId) {
             this.player.updateVideo();
@@ -170,6 +170,7 @@ class IeeeVisStream {
 
         const previewImg = document.getElementById('preview-img');
         if(previewImg) {
+            document.getElementById('image-outer')!.style.height = `${mainContentHeight}px`;
             previewImg.style.maxWidth = `${contentWidth}px`;
             previewImg.style.maxHeight = `${mainContentHeight}px`;
         }
@@ -179,7 +180,8 @@ class IeeeVisStream {
         gatherFrame.setAttribute('height', `${mainContentHeight}`);
 
         const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
-        const panelHeight = this.height - IeeeVisStream.HEADERS_HEIGHT * 2;
+        const panelContentHeight = this.height - IeeeVisStream.HEADERS_HEIGHT * 2;
+        console.log('panel height', panelContentHeight)
         let qaHeightPercent = state === "QA" ? 60 : 40;
         if(this.currentPanelFocus === "qa") {
             qaHeightPercent = 66;
@@ -189,19 +191,20 @@ class IeeeVisStream {
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
         const slidoFrame = document.getElementById('slido-frame')!;
-        const slidoHeight = qaHeightPercent / 100 * panelHeight + 0; // 0 offset for the top bar. Must match CSS.
+        const slidoTopOffset = 0; // +0 offset for the top bar. Must match CSS.
+        const slidoHeight = qaHeightPercent / 100 * panelContentHeight + slidoTopOffset;
 
         if(slidoFrame) {
             slidoFrame.setAttribute('width', `${panelWidth}`);
             slidoFrame.style.height = `${slidoHeight}px`;
-            document.getElementById('slido-wrap')!.style.height = `${slidoHeight - 100}px`;
+            document.getElementById('slido-wrap')!.style.height = `${slidoHeight - slidoTopOffset}px`;
         }
 
         const discordFrame = document.getElementById('discord-iframe');
         if(discordFrame) {
             discordFrame.setAttribute('width', `${panelWidth}`);
-            discordFrame.style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
-            document.getElementById('discord-wrap')!.style.height = `${(100 - qaHeightPercent) / 100 * panelHeight}px`;
+            discordFrame.style.height = `${(100 - qaHeightPercent) / 100 * panelContentHeight}px`;
+            document.getElementById('discord-wrap')!.style.height = `${(100 - qaHeightPercent) / 100 * panelContentHeight}px`;
         }
     }
 }
