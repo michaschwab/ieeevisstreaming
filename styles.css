@@ -40,7 +40,7 @@ button {
     overflow: hidden;
 }
 #slido-frame {
-    margin-top: -100px;
+    margin-top: -0px; /* must match JS */
 }
 
 header {

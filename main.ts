@@ -193,7 +193,7 @@ class IeeeVisStream {
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
         const slidoFrame = document.getElementById('slido-frame')!;
-        const slidoHeight = qaHeightPercent / 100 * panelHeight + 100; // 100 offset for the top bar. Must match CSS.
+        const slidoHeight = qaHeightPercent / 100 * panelHeight + 0; // 0 offset for the top bar. Must match CSS.
 
         if(slidoFrame) {
             slidoFrame.setAttribute('width', `${panelWidth}`);
