@@ -144,6 +144,10 @@ class IeeeVisStream {
 
         const state = this.getCurrentStage()?.state;
 
+        if(!state) {
+            return;
+        }
+
         if(state === "SOCIALIZING") {
             // Show gathertown, hide YouTube
             document.getElementById('youtube-outer')!.style.display = 'none';
@@ -179,14 +183,22 @@ class IeeeVisStream {
         gatherFrame.setAttribute('width', `${contentWidth}`);
         gatherFrame.setAttribute('height', `${mainContentHeight}`);
 
+        const qaShown = ["WATCHING", "QA"].indexOf(state) !== -1;
+        const numHeaders = qaShown ? 2 : 1;
         const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
-        const panelContentHeight = this.height - IeeeVisStream.HEADERS_HEIGHT * 2;
-        console.log('panel height', panelContentHeight)
-        let qaHeightPercent = state === "QA" ? 60 : 40;
+        const panelContentHeight = this.height - IeeeVisStream.HEADERS_HEIGHT * numHeaders;
+
+        const qaWrap = document.getElementById('qa')!;
+        qaWrap.style.display = qaShown ? '' : 'none';
+
+        let qaHeightPercent = qaShown ? 40 : 0;
+        if(state === "QA") {
+            qaHeightPercent = 60;
+        }
         if(this.currentPanelFocus === "qa") {
-            qaHeightPercent = 66;
+            qaHeightPercent = 70;
         } else if(this.currentPanelFocus === "chat") {
-            qaHeightPercent = 33;
+            qaHeightPercent = 30;
         }
         document.getElementById('sidepanel')!.style.width = `${panelWidth}px`;
 
