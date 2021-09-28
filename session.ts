@@ -1,9 +1,6 @@
 export interface Session {
     name: string;
     currentStatus: SessionStatus;
-    discord: string;
-    slido: string;
-    slido_room: string;
     room: string;
     time_start: string;
     time_end: string;

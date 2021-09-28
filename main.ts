@@ -49,13 +49,13 @@ class IeeeVisStream {
         document.getElementById('discord-wrap')!.innerHTML = `
             <iframe
                 id="discord-iframe"
-                src="https://ieeevis-e.widgetbot.co/channels/884159773287805038/${this.currentSession!.discord}"
+                src="https://ieeevis-e.widgetbot.co/channels/884159773287805038/${this.room!.discord}"
             ></iframe>`;
     }
 
     loadSlido() {
         const frame = document.getElementById('slido-frame')!;
-        const url = `https://app.sli.do/event/${this.currentSession!.slido}?section=${this.currentSession!.slido_room}`;
+        const url = `https://app.sli.do/event/${this.room!.slido}?section=${this.room!.slido_room}`;
         frame.setAttribute('src', url);
     }
 
@@ -98,6 +98,9 @@ class IeeeVisStream {
     onRoomUpdated(room: Room) {
         this.room = room;
 
+        this.loadChat();
+        this.loadSlido();
+
         this.db.loadSession(room.currentSession, session => this.onSessionUpdated(room.currentSession, session));
     }
 
@@ -116,13 +119,6 @@ class IeeeVisStream {
 
         if(this.getCurrentVideoId() != lastYtId) {
             this.player.updateVideo();
-        }
-
-        if(this.currentSession.discord != lastSession?.discord) {
-            this.loadChat();
-        }
-        if(this.currentSession.slido != lastSession?.slido) {
-            this.loadSlido();
         }
         if(this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
             this.loadPreviewImage();
