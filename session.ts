@@ -2,8 +2,8 @@ export interface Session {
     name: string;
     currentStatus: SessionStatus;
     discord: string;
-    rocketchat: string;
     slido: string;
+    slido_room: string;
     room: string;
     time_start: string;
     time_end: string;
@@ -15,6 +15,9 @@ export interface Session {
 export interface Room {
     name: string;
     currentSession: string;
+    discord: string;
+    slido: string;
+    slido_room: string;
 }
 
 export interface SessionStatus {

@@ -55,7 +55,8 @@ class IeeeVisStream {
 
     loadSlido() {
         const frame = document.getElementById('slido-frame')!;
-        frame.setAttribute('src', `https://app.sli.do/event/${this.currentSession!.slido}`);
+        const url = `https://app.sli.do/event/${this.currentSession!.slido}?section=${this.currentSession!.slido_room}`;
+        frame.setAttribute('src', url);
     }
 
     checkPanelFocus() {
