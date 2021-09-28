@@ -184,7 +184,8 @@
     }
     loadSlido() {
       const frame = document.getElementById("slido-frame");
-      frame.setAttribute("src", `https://app.sli.do/event/${this.currentSession.slido}`);
+      const url = `https://app.sli.do/event/${this.currentSession.slido}?section=${this.currentSession.slido_room}`;
+      frame.setAttribute("src", url);
     }
     checkPanelFocus() {
       window.setInterval(() => {
@@ -212,7 +213,7 @@
     loadPreviewImage() {
       console.log("loading preview", this.getCurrentStage()?.imageUrl);
       const url = this.getCurrentStage()?.imageUrl;
-      const html = !url ? "" : `<img src="${url}"  alt="Preview Image" />`;
+      const html = !url ? "" : `<img src="${url}"  alt="Preview Image" id="preview-img" />`;
       const previewWrap = document.getElementById("image-outer");
       previewWrap.innerHTML = html;
     }
@@ -273,6 +274,11 @@
       const contentWrap = document.getElementById(_IeeeVisStream.CONTENT_WRAPPER_ID);
       contentWrap.style.width = `${contentWidth}px`;
       this.player.setSize(contentWidth, mainContentHeight);
+      const previewImg = document.getElementById("preview-img");
+      if (previewImg) {
+        previewImg.style.maxWidth = `${contentWidth}px`;
+        previewImg.style.maxHeight = `${mainContentHeight}px`;
+      }
       const gatherFrame = document.getElementById("gathertown-iframe");
       gatherFrame.setAttribute("width", `${contentWidth}`);
       gatherFrame.setAttribute("height", `${mainContentHeight}`);

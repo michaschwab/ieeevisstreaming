@@ -90,7 +90,7 @@ class IeeeVisStream {
     loadPreviewImage() {
         console.log('loading preview', this.getCurrentStage()?.imageUrl);
         const url = this.getCurrentStage()?.imageUrl;
-        const html = !url ? '' : `<img src="${url}"  alt="Preview Image" />`;
+        const html = !url ? '' : `<img src="${url}"  alt="Preview Image" id="preview-img" />`;
         const previewWrap = document.getElementById('image-outer')!;
         previewWrap.innerHTML = html;
     }
@@ -171,6 +171,12 @@ class IeeeVisStream {
         const contentWrap = document.getElementById(IeeeVisStream.CONTENT_WRAPPER_ID)!;
         contentWrap.style.width = `${contentWidth}px`;
         this.player.setSize(contentWidth, mainContentHeight);
+
+        const previewImg = document.getElementById('preview-img');
+        if(previewImg) {
+            previewImg.style.maxWidth = `${contentWidth}px`;
+            previewImg.style.maxHeight = `${mainContentHeight}px`;
+        }
 
         const gatherFrame = document.getElementById('gathertown-iframe')!;
         gatherFrame.setAttribute('width', `${contentWidth}`);
