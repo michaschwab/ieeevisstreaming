@@ -14,8 +14,10 @@ export class IeeeVisVideoPlayer {
     youtubePlayerLoaded = false;
     youtubePlayerReady = false;
 
+    currentLiveStreamStart?: Date;
+
     constructor(private elementId: string,
-                private getCurrentVideo: OmitThisParameter<() => (SessionStage | undefined)>,
+                private getCurrentStage: OmitThisParameter<() => (SessionStage | undefined)>,
                 private getCurrentVideoId: OmitThisParameter<() => string | undefined>,
                 private getCurrentVideoStatus: () => (SessionStatus | undefined)) {
         this.init();
@@ -62,6 +64,7 @@ export class IeeeVisVideoPlayer {
             this.player!.mute();
         }
         this.player!.playVideo();
+        this.maybeLoadLiveVideoStart();
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
@@ -75,7 +78,7 @@ export class IeeeVisVideoPlayer {
             const currentTime = this.player!.getCurrentTime();
             if(Math.abs(startTime - currentTime) > 5) {
                 this.player!.seekTo(startTime, true);
-                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime());
+                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime(), this.player!.getDuration(), this.player);
             }
         }
     }
@@ -108,16 +111,47 @@ export class IeeeVisVideoPlayer {
         // The seeking in the following line does not work for 0 (see workaround above).
         this.player!.loadVideoById(this.getCurrentVideoId()!, this.getCurrentStartTimeS());
         this.player!.playVideo();
+
+        this.maybeLoadLiveVideoStart();
+    }
+
+    private maybeLoadLiveVideoStart() {
+        this.currentLiveStreamStart = undefined;
+
+        if(this.getCurrentStage()?.live) {
+            // Fetch live video start.
+            const apiKey = 'AIzaSyBh4_BI8d1LFsXouF3IsXSa6EKCZPa7qXI';
+            const url = `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${this.getCurrentVideoId()}&key=${apiKey}`;
+            const request = new Request(url, { method: "GET" });
+            fetch(request)
+                .then(response => {
+                    if (response.status === 200) {
+                        return response.json();
+                    } else {
+                        throw new Error('Something went wrong on api server!');
+                    }
+                })
+                .then((blob: LiveStreamingDetails) => {
+                    //console.log('got it', blob, blob.items[0].liveStreamingDetails.actualStartTime)
+                    this.currentLiveStreamStart = new Date(blob.items[0].liveStreamingDetails.actualStartTime);
+                })
+                .catch(error => console.error(error));
+        }
     }
 
     private getCurrentStartTimeS() {
-        if(!this.getCurrentVideo()!.live || !this.youtubePlayerReady) {
+        if(!this.getCurrentStage()!.live || !this.youtubePlayerReady) {
             const timeMs = new Date().getTime();
             const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp || 0;
 
             return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        } else if(this.getCurrentVideo()!.live) {
-            return this.player!.getDuration();
+        } else if(this.getCurrentStage()!.live) {
+            if(!this.currentLiveStreamStart) {
+                return 0;
+            }
+            const timeDiffMs = new Date().getTime() - this.currentLiveStreamStart.getTime();
+            return Math.round(timeDiffMs / 1000);
+            //return this.player!.getDuration();
         }
     }
 }
@@ -128,4 +162,23 @@ interface YouTube {
 
 interface YouTubePlayerConstructor {
     new(elementId: string, data: any): YoutubePlayer
+}
+
+interface LiveStreamingDetails {
+    "kind": string;
+    "etag": string;
+    "items": {
+        "kind": string,
+        "etag": string,
+        "id": string,
+        "liveStreamingDetails": {
+            "actualStartTime": string,
+            "scheduledStartTime": string,
+            "activeLiveChatId": string
+        }
+    }[],
+    "pageInfo": {
+        "totalResults": number,
+        "resultsPerPage": number
+    }
 }

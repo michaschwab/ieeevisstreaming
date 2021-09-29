@@ -157,7 +157,7 @@
         const tr = document.createElement("tr");
         tr.className = active ? "active" : "";
         tr.innerHTML = `
-                <td>` + (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>` : `<a href=${ytUrl}" target="_blank">${stage.title}</a>`) + `
+                <td>` + (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>` : `<a href="${ytUrl}" target="_blank">${stage.title}</a>`) + `
                 </td>
                 <td>${startText}</td>
                 <td>${duration}</td>
