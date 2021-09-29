@@ -32,7 +32,6 @@ class IeeeVisStream {
             () => this.currentSession?.currentStatus);
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
 
-        this.loadGathertown();
         this.loadPreviewImage();
 
         this.resize();
@@ -77,14 +76,14 @@ class IeeeVisStream {
         }, 200);
     }
 
-    loadGathertown() {
-        const html = `<iframe title="gather town"
+    updateGathertown() {
+        const gatherWrap = document.getElementById(IeeeVisStream.GATHERTOWN_WRAPPER_ID)!;
+
+        gatherWrap.innerHTML = this.getCurrentStage()?.state !== "SOCIALIZING" ? "" :
+            `<iframe title="gather town"
                               allow="camera;microphone"
                               id="gathertown-iframe"
                               src="https://gather.town/app/aDeS7vVGW5A2wuF5/vis21-tech2"></iframe>`;
-
-        const gatherWrap = document.getElementById(IeeeVisStream.GATHERTOWN_WRAPPER_ID)!;
-        gatherWrap.innerHTML = html;
     }
 
     loadPreviewImage() {
@@ -121,6 +120,8 @@ class IeeeVisStream {
         if(this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
             this.loadPreviewImage();
         }
+        this.updateGathertown();
+
         this.resize();
     }
 
@@ -177,9 +178,11 @@ class IeeeVisStream {
             previewImg.style.maxHeight = `${mainContentHeight}px`;
         }
 
-        const gatherFrame = document.getElementById('gathertown-iframe')!;
-        gatherFrame.setAttribute('width', `${contentWidth}`);
-        gatherFrame.setAttribute('height', `${mainContentHeight}`);
+        const gatherFrame = document.getElementById('gathertown-iframe');
+        if(gatherFrame) {
+            gatherFrame.setAttribute('width', `${contentWidth}`);
+            gatherFrame.setAttribute('height', `${mainContentHeight}`);
+        }
 
         const qaShown = ["WATCHING", "QA"].indexOf(state) !== -1;
         const numHeaders = qaShown ? 2 : 1;

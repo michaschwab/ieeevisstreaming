@@ -175,7 +175,6 @@
       this.db = new IeeeVisDb();
       this.player = new IeeeVisVideoPlayer(_IeeeVisStream.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
-      this.loadGathertown();
       this.loadPreviewImage();
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
@@ -211,13 +210,12 @@
         }
       }, 200);
     }
-    loadGathertown() {
-      const html = `<iframe title="gather town"
+    updateGathertown() {
+      const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
+      gatherWrap.innerHTML = this.getCurrentStage()?.state !== "SOCIALIZING" ? "" : `<iframe title="gather town"
                               allow="camera;microphone"
                               id="gathertown-iframe"
                               src="https://gather.town/app/aDeS7vVGW5A2wuF5/vis21-tech2"></iframe>`;
-      const gatherWrap = document.getElementById(_IeeeVisStream.GATHERTOWN_WRAPPER_ID);
-      gatherWrap.innerHTML = html;
     }
     loadPreviewImage() {
       console.log("loading preview", this.getCurrentStage()?.imageUrl);
@@ -246,6 +244,7 @@
       if (this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
         this.loadPreviewImage();
       }
+      this.updateGathertown();
       this.resize();
     }
     getCurrentStage() {
@@ -289,8 +288,10 @@
         previewImg.style.maxHeight = `${mainContentHeight}px`;
       }
       const gatherFrame = document.getElementById("gathertown-iframe");
-      gatherFrame.setAttribute("width", `${contentWidth}`);
-      gatherFrame.setAttribute("height", `${mainContentHeight}`);
+      if (gatherFrame) {
+        gatherFrame.setAttribute("width", `${contentWidth}`);
+        gatherFrame.setAttribute("height", `${mainContentHeight}`);
+      }
       const qaShown = ["WATCHING", "QA"].indexOf(state) !== -1;
       const numHeaders = qaShown ? 2 : 1;
       const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
