@@ -73,13 +73,17 @@
       this.youtubeApiReady = true;
     }
     updateVideo() {
-      if (!this.getCurrentVideoId() || !this.youtubeApiReady) {
+      if (!this.youtubeApiReady) {
         return;
       }
       if (!this.youtubePlayerLoaded) {
         this.loadYoutubePlayer();
       } else {
-        this.changeYoutubeVideo();
+        if (!this.getCurrentVideoId() && this.player) {
+          this.player.stopVideo();
+        } else {
+          this.changeYoutubeVideo();
+        }
       }
     }
     setSize(width, height) {
