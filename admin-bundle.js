@@ -175,14 +175,37 @@
     sessionToRoom() {
       this.db.setRoom("currentSession", this.SESSION_ID);
     }
-    updateVideoIndex(index) {
+    async updateVideoIndex(index) {
+      const liveStreamStartTimestamp = await this.maybeLoadLiveVideoStart(index);
       this.db.set("currentStatus", {
         videoStartTimestamp: new Date().getTime(),
-        videoIndex: index
+        videoIndex: index,
+        liveStreamStartTimestamp
       });
       this.session.currentStatus.videoStartTimestamp = new Date().getTime();
       this.session.currentStatus.videoIndex = index;
       this.updateTable();
+    }
+    maybeLoadLiveVideoStart(index) {
+      return new Promise((resolve, reject) => {
+        const stage = this.session.stages[index];
+        if (stage?.live) {
+          const apiKey = "AIzaSyDxGUDBsYHoOLJf5O2kf8gKgvJjQRcVykE";
+          const url = `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${stage.youtubeId}&key=${apiKey}`;
+          const request = new Request(url, {method: "GET"});
+          fetch(request).then((response) => {
+            if (response.status === 200) {
+              return response.json();
+            } else {
+              throw new Error("Something went wrong on api server!");
+            }
+          }).then((blob) => {
+            resolve(new Date(blob.items[0].liveStreamingDetails.actualStartTime).getTime());
+          }).catch((error) => console.error(error));
+        } else {
+          resolve(0);
+        }
+      });
     }
   };
   var sessionId = location.search.indexOf("session=") === -1 ? "" : location.search.substr(location.search.indexOf("session=") + "session=".length);

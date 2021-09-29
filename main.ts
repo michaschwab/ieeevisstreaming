@@ -113,8 +113,6 @@ class IeeeVisStream {
         const lastYtId = this.getCurrentVideoId();
         this.currentSession = session;
 
-        //document.getElementById('room-title')!.innerText = this.room!.name;
-        //document.getElementById('session-title')!.innerText = this.currentSession.name;
         document.getElementById('session-name')!.innerText = this.getCurrentStage()?.title || '';
 
         if(this.getCurrentVideoId() != lastYtId) {

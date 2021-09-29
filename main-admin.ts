@@ -123,14 +123,45 @@ class IeeeVisStreamAdmin {
         this.db.setRoom('currentSession', this.SESSION_ID);
     }
 
-    private updateVideoIndex(index: number) {
+    private async updateVideoIndex(index: number) {
+        const liveStreamStartTimestamp = await this.maybeLoadLiveVideoStart(index);
         this.db.set('currentStatus', {
             videoStartTimestamp: new Date().getTime(),
-            videoIndex: index
+            videoIndex: index,
+            liveStreamStartTimestamp
         });
+
         this.session!.currentStatus.videoStartTimestamp = new Date().getTime();
         this.session!.currentStatus.videoIndex = index;
         this.updateTable();
+    }
+
+    private maybeLoadLiveVideoStart(index: number) {
+        return new Promise((resolve, reject) => {
+            const stage = this.session!.stages[index];
+
+            if(stage?.live) {
+                // Fetch live video start.
+                const apiKey = 'AIzaSyDxGUDBsYHoOLJf5O2kf8gKgvJjQRcVykE';
+                const url = `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${stage.youtubeId}&key=${apiKey}`;
+                const request = new Request(url, { method: "GET" });
+                fetch(request)
+                    .then(response => {
+                        if (response.status === 200) {
+                            return response.json();
+                        } else {
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    })
+                    .then((blob: LiveStreamingDetails) => {
+                        //console.log('got it', blob, blob.items[0].liveStreamingDetails.actualStartTime)
+                        resolve((new Date(blob.items[0].liveStreamingDetails.actualStartTime)).getTime());
+                    })
+                    .catch(error => console.error(error));
+            } else {
+                resolve(0);
+            }
+        });
     }
 }
 
@@ -142,4 +173,23 @@ if(sessionId) {
     document.getElementById('wrapper')!.style.display = 'block';
 } else {
     document.getElementById('param-error')!.style.display = 'block';
+}
+
+interface LiveStreamingDetails {
+    "kind": string;
+    "etag": string;
+    "items": {
+        "kind": string,
+        "etag": string,
+        "id": string,
+        "liveStreamingDetails": {
+            "actualStartTime": string,
+            "scheduledStartTime": string,
+            "activeLiveChatId": string
+        }
+    }[],
+    "pageInfo": {
+        "totalResults": number,
+        "resultsPerPage": number
+    }
 }

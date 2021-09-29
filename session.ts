@@ -20,6 +20,7 @@ export interface Room {
 export interface SessionStatus {
     videoIndex: number;
     videoStartTimestamp: number;
+    liveStreamStartTimestamp: number;
 }
 
 export interface SessionStage {

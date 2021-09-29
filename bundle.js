@@ -56,11 +56,11 @@
 
   // videoplayer.ts
   var IeeeVisVideoPlayer = class {
-    constructor(elementId, getCurrentStage, getCurrentVideoId, getCurrentVideoStatus) {
+    constructor(elementId, getCurrentStage, getCurrentVideoId, getCurrentSessionStatus) {
       this.elementId = elementId;
       this.getCurrentStage = getCurrentStage;
       this.getCurrentVideoId = getCurrentVideoId;
-      this.getCurrentVideoStatus = getCurrentVideoStatus;
+      this.getCurrentSessionStatus = getCurrentSessionStatus;
       this.audioContext = new AudioContext();
       this.width = 400;
       this.height = 300;
@@ -103,7 +103,6 @@
         this.player.mute();
       }
       this.player.playVideo();
-      this.maybeLoadLiveVideoStart();
     }
     onPlayerStateChange(state) {
       if (state.data === PlayerState.UNSTARTED) {
@@ -142,35 +141,18 @@
     changeYoutubeVideo() {
       this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
       this.player.playVideo();
-      this.maybeLoadLiveVideoStart();
-    }
-    maybeLoadLiveVideoStart() {
-      this.currentLiveStreamStart = void 0;
-      if (this.getCurrentStage()?.live) {
-        const apiKey = "AIzaSyBh4_BI8d1LFsXouF3IsXSa6EKCZPa7qXI";
-        const url = `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${this.getCurrentVideoId()}&key=${apiKey}`;
-        const request = new Request(url, {method: "GET"});
-        fetch(request).then((response) => {
-          if (response.status === 200) {
-            return response.json();
-          } else {
-            throw new Error("Something went wrong on api server!");
-          }
-        }).then((blob) => {
-          this.currentLiveStreamStart = new Date(blob.items[0].liveStreamingDetails.actualStartTime);
-        }).catch((error) => console.error(error));
-      }
     }
     getCurrentStartTimeS() {
       if (!this.getCurrentStage().live || !this.youtubePlayerReady) {
         const timeMs = new Date().getTime();
-        const videoStartTimestampMs = this.getCurrentVideoStatus()?.videoStartTimestamp || 0;
+        const videoStartTimestampMs = this.getCurrentSessionStatus()?.videoStartTimestamp || 0;
         return Math.round((timeMs - videoStartTimestampMs) / 1e3);
       } else if (this.getCurrentStage().live) {
-        if (!this.currentLiveStreamStart) {
+        const videoStartTimestampMs = this.getCurrentSessionStatus()?.liveStreamStartTimestamp;
+        if (!videoStartTimestampMs) {
           return 0;
         }
-        const timeDiffMs = new Date().getTime() - this.currentLiveStreamStart.getTime();
+        const timeDiffMs = new Date().getTime() - videoStartTimestampMs;
         return Math.round(timeDiffMs / 1e3);
       }
     }
