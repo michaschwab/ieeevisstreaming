@@ -125,10 +125,11 @@ class IeeeVisStreamAdmin {
 
     private async updateVideoIndex(index: number) {
         const liveStreamStartTimestamp = await this.maybeLoadLiveVideoStart(index);
+
         this.db.set('currentStatus', {
             videoStartTimestamp: new Date().getTime(),
             videoIndex: index,
-            liveStreamStartTimestamp
+            liveStreamStartTimestamp: liveStreamStartTimestamp || 0
         });
 
         this.session!.currentStatus.videoStartTimestamp = new Date().getTime();
