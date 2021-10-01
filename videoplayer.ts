@@ -66,6 +66,8 @@ export class IeeeVisVideoPlayer {
             this.player!.mute();
         }
         this.player!.playVideo();
+
+        this.updateVideo();
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {

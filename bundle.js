@@ -107,6 +107,7 @@
         this.player.mute();
       }
       this.player.playVideo();
+      this.updateVideo();
     }
     onPlayerStateChange(state) {
       if (state.data === PlayerState.UNSTARTED) {
