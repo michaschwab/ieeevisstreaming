@@ -180,7 +180,7 @@
       this.db.set("currentStatus", {
         videoStartTimestamp: new Date().getTime(),
         videoIndex: index,
-        liveStreamStartTimestamp
+        liveStreamStartTimestamp: liveStreamStartTimestamp || 0
       });
       this.session.currentStatus.videoStartTimestamp = new Date().getTime();
       this.session.currentStatus.videoIndex = index;
