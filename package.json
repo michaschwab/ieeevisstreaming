@@ -10,7 +10,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "./node_modules/.bin/esbuild main.ts --bundle --sourcemap --outfile=bundle.js",
-    "admin-compile": "./node_modules/.bin/esbuild main-admin.ts --bundle --sourcemap --outfile=admin-bundle.js"
+    "admin-compile": "./node_modules/.bin/esbuild main-admin.ts --bundle --sourcemap --outfile=admin-bundle.js",
+    "playback-compile": "./node_modules/.bin/esbuild playback.ts --bundle --sourcemap --outfile=playback-bundle.js"
   },
   "author": "",
   "license": "ISC"

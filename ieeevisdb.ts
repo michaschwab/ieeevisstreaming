@@ -1,4 +1,4 @@
-import {AdminsData, Log, Room, Session} from "./session";
+import {AdminsData, Log, Room, RoomDayLogs, Session} from "./session";
 
 declare var firebase: Firebase;
 
@@ -74,6 +74,14 @@ export class IeeeVisDb {
         const timeString = `${hour}:${minute}:${second}:${milli}`;
 
         this.logsRef?.child(dayString).child(log.room).child(timeString).set(log);
+    }
+
+    loadLogs(room: string, day: string, callback: (logs: RoomDayLogs) => void) {
+        const logsRef = firebase.database().ref(`logs/${day}/${room}`);
+
+        logsRef!.on('value', (snapshot) => {
+            callback(snapshot.val() as RoomDayLogs);
+        });
     }
 }
 

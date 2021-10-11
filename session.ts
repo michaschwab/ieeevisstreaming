@@ -52,3 +52,7 @@ export interface Log {
     time: number;
     admin: string;
 }
+
+export interface RoomDayLogs {
+    [timestamp: string]: Log
+}
