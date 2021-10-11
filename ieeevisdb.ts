@@ -1,4 +1,4 @@
-import {AdminsData, Room, Session} from "./session";
+import {AdminsData, Log, Room, Session} from "./session";
 
 declare var firebase: Firebase;
 
@@ -6,6 +6,7 @@ export class IeeeVisDb {
     private sessionRef?: FirebaseRef;
     private roomRef?: FirebaseRef;
     private adminsRef?: FirebaseRef;
+    private logsRef?: FirebaseRef;
 
     constructor() {
         this.initFirebase();
@@ -23,6 +24,8 @@ export class IeeeVisDb {
             measurementId: "G-SNC8VC6RFM"
         });
         firebase.analytics();
+
+        this.logsRef = firebase.database().ref('logs/');
     }
 
     loadRoom(roomId: string, onRoomUpdated: (room: Room) => void) {
@@ -55,6 +58,22 @@ export class IeeeVisDb {
 
     setRoom(path: string, value: string|number) {
         this.roomRef?.child(path).set(value);
+    }
+
+    log(log: Log) {
+        const date = new Date(log.time);
+        const month = date.getUTCMonth() + 1;
+        const day = date.getUTCDate();
+        const year = date.getUTCFullYear();
+        const dayString = `${year}-${month}-${day}`;
+
+        const hour = date.getUTCHours();
+        const minute = date.getUTCMinutes();
+        const second = date.getUTCSeconds();
+        const milli = date.getUTCMilliseconds();
+        const timeString = `${hour}:${minute}:${second}:${milli}`;
+
+        this.logsRef?.child(dayString).child(log.room).child(timeString).set(log);
     }
 }
 

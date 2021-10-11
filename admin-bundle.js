@@ -16,6 +16,7 @@
         measurementId: "G-SNC8VC6RFM"
       });
       firebase.analytics();
+      this.logsRef = firebase.database().ref("logs/");
     }
     loadRoom(roomId, onRoomUpdated) {
       this.roomRef = firebase.database().ref("rooms/" + roomId);
@@ -40,6 +41,19 @@
     }
     setRoom(path, value) {
       this.roomRef?.child(path).set(value);
+    }
+    log(log) {
+      const date = new Date(log.time);
+      const month = date.getUTCMonth() + 1;
+      const day = date.getUTCDate();
+      const year = date.getUTCFullYear();
+      const dayString = `${year}-${month}-${day}`;
+      const hour = date.getUTCHours();
+      const minute = date.getUTCMinutes();
+      const second = date.getUTCSeconds();
+      const milli = date.getUTCMilliseconds();
+      const timeString = `${hour}:${minute}:${second}:${milli}`;
+      this.logsRef?.child(dayString).child(log.room).child(timeString).set(log);
     }
   };
 
@@ -111,9 +125,10 @@
       if (roomId != this.session?.room) {
         return;
       }
+      this.room = room;
       document.getElementById("room-name").innerText = room.name;
       document.getElementById("room-currentsession").innerText = room.currentSession;
-      const isLive = room.currentSession == this.SESSION_ID;
+      const isLive = this.isLive();
       document.getElementById("live-session-alert").style.display = isLive ? "block" : "none";
       document.getElementById("live-room-name").innerText = room.name;
       document.getElementById("session-to-room-button").style.display = isLive ? "none" : "";
@@ -174,14 +189,31 @@
     }
     sessionToRoom() {
       this.db.setRoom("currentSession", this.SESSION_ID);
+      this.db.log({
+        room: this.session.room,
+        session: this.SESSION_ID,
+        status: this.session.currentStatus,
+        admin: this.user?.uid,
+        time: new Date().getTime()
+      });
     }
     async updateVideoIndex(index) {
       const liveStreamStartTimestamp = await this.maybeLoadLiveVideoStart(index);
-      this.db.set("currentStatus", {
+      const status = {
         videoStartTimestamp: new Date().getTime(),
         videoIndex: index,
         liveStreamStartTimestamp: liveStreamStartTimestamp || 0
-      });
+      };
+      this.db.set("currentStatus", status);
+      if (this.isLive()) {
+        this.db.log({
+          room: this.session.room,
+          session: this.SESSION_ID,
+          status,
+          admin: this.user?.uid,
+          time: new Date().getTime()
+        });
+      }
       this.session.currentStatus.videoStartTimestamp = new Date().getTime();
       this.session.currentStatus.videoIndex = index;
       this.updateTable();
@@ -206,6 +238,9 @@
           resolve(0);
         }
       });
+    }
+    isLive() {
+      return this.room?.currentSession == this.SESSION_ID;
     }
   };
   var sessionId = location.search.indexOf("session=") === -1 ? "" : location.search.substr(location.search.indexOf("session=") + "session=".length);

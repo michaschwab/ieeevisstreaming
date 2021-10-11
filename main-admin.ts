@@ -1,4 +1,4 @@
-import {AdminsData, Room, Session, User} from "./session";
+import {AdminsData, Room, Session, SessionStatus, User} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisAuth} from "./auth";
 
@@ -7,6 +7,7 @@ class IeeeVisStreamAdmin {
     db: IeeeVisDb;
     admins?: AdminsData;
     user?: User;
+    room?: Room;
 
     constructor(private SESSION_ID: string) {
         this.db = new IeeeVisDb();
@@ -40,10 +41,11 @@ class IeeeVisStreamAdmin {
             // Do not listen to update events of a different room.
             return;
         }
+        this.room = room;
         document.getElementById('room-name')!.innerText = room.name;
         document.getElementById('room-currentsession')!.innerText = room.currentSession;
 
-        const isLive = room.currentSession == this.SESSION_ID;
+        const isLive = this.isLive();
         document.getElementById('live-session-alert')!.style.display = isLive ? 'block' : 'none';
         document.getElementById('live-room-name')!.innerText = room.name;
 
@@ -121,23 +123,42 @@ class IeeeVisStreamAdmin {
 
     sessionToRoom() {
         this.db.setRoom('currentSession', this.SESSION_ID);
+
+        this.db.log({
+            room: this.session!.room,
+            session: this.SESSION_ID,
+            status: this.session!.currentStatus,
+            admin: this.user?.uid!,
+            time: new Date().getTime()
+        });
     }
 
     private async updateVideoIndex(index: number) {
         const liveStreamStartTimestamp = await this.maybeLoadLiveVideoStart(index);
 
-        this.db.set('currentStatus', {
+        const status: SessionStatus = {
             videoStartTimestamp: new Date().getTime(),
             videoIndex: index,
             liveStreamStartTimestamp: liveStreamStartTimestamp || 0
-        });
+        };
+        this.db.set('currentStatus', status);
+
+        if(this.isLive()) {
+            this.db.log({
+                room: this.session!.room,
+                session: this.SESSION_ID,
+                status,
+                admin: this.user?.uid!,
+                time: new Date().getTime()
+            });
+        }
 
         this.session!.currentStatus.videoStartTimestamp = new Date().getTime();
         this.session!.currentStatus.videoIndex = index;
         this.updateTable();
     }
 
-    private maybeLoadLiveVideoStart(index: number) {
+    private maybeLoadLiveVideoStart(index: number): Promise<number> {
         return new Promise((resolve, reject) => {
             const stage = this.session!.stages[index];
 
@@ -163,6 +184,10 @@ class IeeeVisStreamAdmin {
                 resolve(0);
             }
         });
+    }
+
+    private isLive() {
+        return this.room?.currentSession == this.SESSION_ID;
     }
 }
 

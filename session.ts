@@ -44,3 +44,11 @@ export interface User {
     email: string;
     uid: string;
 }
+
+export interface Log {
+    room: string;
+    session: string;
+    status: SessionStatus;
+    time: number;
+    admin: string;
+}
