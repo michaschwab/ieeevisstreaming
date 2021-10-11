@@ -16,6 +16,7 @@ class IeeeVisStreamPlayback {
     static HEADERS_HEIGHT = 41;
 
     PANEL_WIDTH_PERCENT = 30;
+    private sessionsData: {[id: string]: Session} = {};
 
     constructor(private ROOM_ID: string, private DAY: string) {
         this.db = new IeeeVisDb();
@@ -29,7 +30,10 @@ class IeeeVisStreamPlayback {
         this.resize();
         window.addEventListener('resize', this.resize.bind(this));
 
-        this.db.loadLogs(ROOM_ID, DAY, this.getLogs.bind(this));
+        this.db.loadAllSessions(sessionsData => {
+            this.sessionsData = sessionsData;
+            this.db.loadLogs(ROOM_ID, DAY, this.getLogs.bind(this));
+        })
     }
 
     getLogs(logsData: RoomDayLogs) {
@@ -37,17 +41,23 @@ class IeeeVisStreamPlayback {
         const logs = Object.values(logsData) as Log[];
 
         for(let i = 1; i < logs.length; i++) {
-            slices.push({
-                duration: logs[i].time - logs[i-1].time,
-                log: logs[i-1]
-            });
+            slices.push(this.createSlice(logs[i-1], logs[i].time - logs[i-1].time));
         }
-        slices.push({
-            duration: -1,
-            log: logs[logs.length-1]
-        });
+        slices.push(this.createSlice(logs[logs.length-1], -1));
 
         console.log(slices);
+    }
+
+    createSlice(log: Log, duration: number) {
+        return {
+            duration,
+            stage: this.getSessionStage(log),
+            log
+        };
+    }
+
+    getSessionStage(log: Log) {
+        return this.sessionsData[log.session].stages[log.status.videoIndex];
     }
 
     onYouTubeIframeAPIReady() {
@@ -64,8 +74,6 @@ class IeeeVisStreamPlayback {
 
     onRoomUpdated(room: Room) {
         this.room = room;
-
-        this.db.loadSession(room.currentSession, session => this.onSessionUpdated(room.currentSession, session));
     }
 
     onSessionUpdated(id: string, session: Session) {

@@ -44,6 +44,11 @@ export class IeeeVisDb {
         });
     }
 
+    loadAllSessions(callback: (sessionsData: {[id: string]: Session}) => void) {
+        const ref = firebase.database().ref('sessions/');
+        ref.on('value', snapshot => callback(snapshot.val()));
+    }
+
     loadAdmins(callback: (adminsData: AdminsData) => void) {
         this.adminsRef = firebase.database().ref('admins');
 

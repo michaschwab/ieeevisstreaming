@@ -30,6 +30,10 @@
         onSessionUpdated(snapshot.val());
       });
     }
+    loadAllSessions(callback) {
+      const ref = firebase.database().ref("sessions/");
+      ref.on("value", (snapshot) => callback(snapshot.val()));
+    }
     loadAdmins(callback) {
       this.adminsRef = firebase.database().ref("admins");
       this.adminsRef.on("value", (snapshot) => {
@@ -54,6 +58,12 @@
       const milli = date.getUTCMilliseconds();
       const timeString = `${hour}:${minute}:${second}:${milli}`;
       this.logsRef?.child(dayString).child(log.room).child(timeString).set(log);
+    }
+    loadLogs(room, day, callback) {
+      const logsRef = firebase.database().ref(`logs/${day}/${room}`);
+      logsRef.on("value", (snapshot) => {
+        callback(snapshot.val());
+      });
     }
   };
 
