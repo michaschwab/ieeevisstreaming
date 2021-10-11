@@ -244,15 +244,22 @@
                 <td>` + (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>` : `<a href="${ytUrl}" target="_blank">${stage.title}</a>`) + `
                 </td>
                 <td>${startText} UTC</td>
-                <td>${duration}</td>`;
+                <td>${duration}</td>
+                <td>${Math.round(slice.startTimeMs / 1e3)}</td>
+                <td>${Math.round(slice.endTimeMs / 1e3)}</td>`;
         tableBody.append(tr);
       }
     }
     createSlice(log, duration) {
+      const stage = this.getSessionStage(log);
+      const startTimeMs = stage.youtubeId && stage.live ? log.status.videoStartTimestamp - log.status.liveStreamStartTimestamp : 0;
+      const endTimeMs = startTimeMs + duration;
       return {
         duration,
-        stage: this.getSessionStage(log),
-        log
+        stage,
+        log,
+        startTimeMs,
+        endTimeMs
       };
     }
     getSessionStage(log) {

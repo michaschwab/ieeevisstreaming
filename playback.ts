@@ -64,7 +64,6 @@ class IeeeVisStreamPlayback {
             const stage = slice.stage;
             const active = false;//this.session.currentStatus.videoIndex.toString() === stageKey;
             const isPreview = stage.state === "PREVIEW";
-            //const timePlayed = !active ? '-' : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
             const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
             const imgUrl = stage.imageUrl;
             let duration = '';
@@ -86,17 +85,25 @@ class IeeeVisStreamPlayback {
                     : `<a href="${ytUrl}" target="_blank">${stage.title}</a>`) + `
                 </td>
                 <td>${startText} UTC</td>
-                <td>${duration}</td>`;
+                <td>${duration}</td>
+                <td>${Math.round(slice.startTimeMs / 1000)}</td>
+                <td>${Math.round(slice.endTimeMs / 1000)}</td>`;
 
             tableBody.append(tr);
         }
     }
 
     createSlice(log: Log, duration: number): RoomSlice {
+        const stage = this.getSessionStage(log);
+        const startTimeMs = stage.youtubeId && stage.live ?
+            log.status.videoStartTimestamp - log.status.liveStreamStartTimestamp  : 0;
+        const endTimeMs = startTimeMs + duration;
         return {
             duration,
-            stage: this.getSessionStage(log),
-            log
+            stage,
+            log,
+            startTimeMs,
+            endTimeMs,
         };
     }
 
@@ -221,4 +228,6 @@ interface RoomSlice {
     duration: number,
     stage: SessionStage,
     log: Log,
+    startTimeMs: number,
+    endTimeMs: number
 }
