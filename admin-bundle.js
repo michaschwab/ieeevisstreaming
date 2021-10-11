@@ -164,10 +164,11 @@
           const end = new Date(stage.time_end);
           const durationMs = end.getTime() - start.getTime();
           duration = new Date(durationMs).toISOString().substr(11, 8);
-        } else if (stage.live) {
-          duration = "(live)";
         } else {
           duration = "-";
+        }
+        if (stage.live) {
+          duration += " (live)";
         }
         const tr = document.createElement("tr");
         tr.className = active ? "active" : "";
