@@ -17,6 +17,7 @@ class IeeeVisStreamPlayback {
 
     PANEL_WIDTH_PERCENT = 30;
     private sessionsData: {[id: string]: Session} = {};
+    private roomSlices: RoomSlice[] = [];
 
     constructor(private ROOM_ID: string, private DAY: string) {
         this.db = new IeeeVisDb();
@@ -45,10 +46,53 @@ class IeeeVisStreamPlayback {
         }
         slices.push(this.createSlice(logs[logs.length-1], -1));
 
-        console.log(slices);
+        this.roomSlices = slices;
+        this.updateTable();
     }
 
-    createSlice(log: Log, duration: number) {
+    updateTable() {
+        if(!this.roomSlices.length) {
+            return;
+        }
+
+        const tableBody = document.getElementById('videos-table-body') as HTMLTableElement;
+        tableBody.innerHTML = '';
+
+        //const currentVideoPlayedMs = new Date().getTime() - this.session.currentStatus.videoStartTimestamp;
+
+        for(const slice of this.roomSlices) {
+            const stage = slice.stage;
+            const active = false;//this.session.currentStatus.videoIndex.toString() === stageKey;
+            const isPreview = stage.state === "PREVIEW";
+            //const timePlayed = !active ? '-' : new Date(currentVideoPlayedMs).toISOString().substr(11, 8);
+            const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
+            const imgUrl = stage.imageUrl;
+            let duration = '';
+            const startText = !slice.log.time ? '' :
+                new Date(slice.log.time).toISOString().substr(0, 16).replace('T', ', ');
+
+            if(slice.duration != -1) {
+                const durationMs = slice.duration;
+                duration = new Date(durationMs).toISOString().substr(11, 8)
+            } else {
+                duration = '-';
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = active ? 'active' : '';
+            tr.innerHTML = `
+                <td>` +
+                (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>`
+                    : `<a href="${ytUrl}" target="_blank">${stage.title}</a>`) + `
+                </td>
+                <td>${startText} UTC</td>
+                <td>${duration}</td>`;
+
+            tableBody.append(tr);
+        }
+    }
+
+    createSlice(log: Log, duration: number): RoomSlice {
         return {
             duration,
             stage: this.getSessionStage(log),
@@ -77,10 +121,7 @@ class IeeeVisStreamPlayback {
     }
 
     onSessionUpdated(id: string, session: Session) {
-        if(this.room?.currentSession != id) {
-            // Do not listen to last session's update events.
-            return;
-        }
+
         const lastSession: Session | undefined = this.currentSession ? {...this.currentSession} : undefined;
         const lastYtId = this.getCurrentVideoId();
         this.currentSession = session;
@@ -174,4 +215,10 @@ if(search && dayIndex) {
     }
 } else {
     document.getElementById('param-error')!.style.display = 'block';
+}
+
+interface RoomSlice {
+    duration: number,
+    stage: SessionStage,
+    log: Log,
 }
