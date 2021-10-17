@@ -56,7 +56,7 @@ export class IeeeVisReplayVideoPlayer {
     }
 
     private onPlayerReady() {
-        console.log('player ready', this.player);
+        console.log('player ready', this.player, this.getCurrentVideoId());
         this.youtubePlayerReady = true;
 
         if(this.audioContext.state === "suspended") {
@@ -118,7 +118,7 @@ export class IeeeVisReplayVideoPlayer {
         // const videoStartTimestampMs = this.getCurrentSessionStatus()?.videoStartTimestamp || 0;
         //
         // return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        return -1;
+        return 0;
     }
 }
 

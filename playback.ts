@@ -8,7 +8,7 @@ class IeeeVisStreamPlayback {
     static CONTENT_WRAPPER_ID = 'content';
 
     room?: Room;
-    currentSession?: Session;
+    currentSlice?: RoomSlice;
     player: IeeeVisReplayVideoPlayer;
     db: IeeeVisDb;
 
@@ -25,7 +25,6 @@ class IeeeVisStreamPlayback {
         this.player = new IeeeVisReplayVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
             this.getCurrentVideoId.bind(this));
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
-        this.loadPreviewImage();
 
         this.resize();
         window.addEventListener('resize', this.resize.bind(this));
@@ -92,7 +91,8 @@ class IeeeVisStreamPlayback {
 
     clickStage(slice: RoomSlice) {
         console.log('hiii2', slice);
-
+        this.currentSlice = slice;
+        this.player.updateVideo();
     }
 
     addSliceIfYouTube(slices: RoomSlice[], log: Log, duration: number) {
@@ -127,21 +127,12 @@ class IeeeVisStreamPlayback {
         this.player.onYouTubeIframeAPIReady();
     }
 
-    loadPreviewImage() {
-        console.log('loading preview', this.getCurrentStage()?.imageUrl);
-        const url = this.getCurrentStage()?.imageUrl;
-        const html = !url ? '' : `<img src="${url}"  alt="Preview Image" id="preview-img" />`;
-        const previewWrap = document.getElementById('image-outer')!;
-        previewWrap.innerHTML = html;
-    }
-
     onRoomUpdated(room: Room) {
         this.room = room;
     }
 
     onSessionUpdated(id: string, session: Session) {
-
-        const lastSession: Session | undefined = this.currentSession ? {...this.currentSession} : undefined;
+        /*const lastSession: Session | undefined = this.currentSession ? {...this.currentSession} : undefined;
         const lastYtId = this.getCurrentVideoId();
         this.currentSession = session;
 
@@ -154,47 +145,35 @@ class IeeeVisStreamPlayback {
             this.loadPreviewImage();
         }
 
-        this.resize();
+        this.resize();*/
     }
 
-    getCurrentStage(): SessionStage | undefined {
+    /*getCurrentStage(): SessionStage | undefined {
         return this.getCurrentStageOfSession(this.currentSession);
     }
 
     getCurrentStageOfSession(session: Session | undefined) {
         return session?.stages[session?.currentStatus?.videoIndex];
-    }
+    }*/
 
     getCurrentVideoId() {
-        return this.getCurrentStage()?.youtubeId;
+        return this.currentSlice?.stage.youtubeId;
+        //return this.getCurrentStage()?.youtubeId;
     }
 
     resize() {
         this.width = window.innerWidth;
         this.height = window.innerHeight - 15;
 
-        const state = this.getCurrentStage()?.state;
+        const state = "WATCHING";//this.getCurrentStage()?.state;
 
         if(!state) {
             return;
         }
 
-        if(state === "SOCIALIZING") {
-            // Show gathertown, hide YouTube
-            document.getElementById('youtube-outer')!.style.display = 'none';
-            document.getElementById('image-outer')!.style.display = 'none';
-            document.getElementById('gathertown-outer')!.style.display = '';
-
-        } else if(state === "PREVIEW") {
-            document.getElementById('youtube-outer')!.style.display = 'none';
-            document.getElementById('image-outer')!.style.display = '';
-            document.getElementById('gathertown-outer')!.style.display = 'none';
-        } else {
-            // Hide gathertown, show YouTube
-            document.getElementById('youtube-outer')!.style.display = '';
-            document.getElementById('image-outer')!.style.display = 'none';
-            document.getElementById('gathertown-outer')!.style.display = 'none';
-        }
+        document.getElementById('youtube-outer')!.style.display = '';
+        document.getElementById('image-outer')!.style.display = 'none';
+        document.getElementById('gathertown-outer')!.style.display = 'none';
 
         const contentWidth = this.width * (100 - this.PANEL_WIDTH_PERCENT) / 100;
         const mainContentHeight = this.height - IeeeVisStreamPlayback.HEADERS_HEIGHT;

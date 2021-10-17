@@ -123,7 +123,7 @@
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     }
     onPlayerReady() {
-      console.log("player ready", this.player);
+      console.log("player ready", this.player, this.getCurrentVideoId());
       this.youtubePlayerReady = true;
       if (this.audioContext.state === "suspended") {
         this.player.mute();
@@ -170,7 +170,7 @@
       this.player.playVideo();
     }
     getCurrentStartTimeS() {
-      return -1;
+      return 0;
     }
   };
 
@@ -187,7 +187,6 @@
       this.db = new IeeeVisDb();
       this.player = new IeeeVisReplayVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentVideoId.bind(this));
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
-      this.loadPreviewImage();
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
       this.db.loadAllSessions((sessionsData) => {
@@ -239,6 +238,8 @@
     }
     clickStage(slice) {
       console.log("hiii2", slice);
+      this.currentSlice = slice;
+      this.player.updateVideo();
     }
     addSliceIfYouTube(slices, log, duration) {
       const slice = this.createSliceIfYouTube(log, duration);
@@ -267,58 +268,24 @@
     onYouTubeIframeAPIReady() {
       this.player.onYouTubeIframeAPIReady();
     }
-    loadPreviewImage() {
-      console.log("loading preview", this.getCurrentStage()?.imageUrl);
-      const url = this.getCurrentStage()?.imageUrl;
-      const html = !url ? "" : `<img src="${url}"  alt="Preview Image" id="preview-img" />`;
-      const previewWrap = document.getElementById("image-outer");
-      previewWrap.innerHTML = html;
-    }
     onRoomUpdated(room) {
       this.room = room;
     }
     onSessionUpdated(id, session) {
-      const lastSession = this.currentSession ? {...this.currentSession} : void 0;
-      const lastYtId = this.getCurrentVideoId();
-      this.currentSession = session;
-      document.getElementById("session-name").innerText = this.getCurrentStage()?.title || "";
-      if (this.getCurrentVideoId() != lastYtId) {
-        this.player.updateVideo();
-      }
-      if (this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
-        this.loadPreviewImage();
-      }
-      this.resize();
-    }
-    getCurrentStage() {
-      return this.getCurrentStageOfSession(this.currentSession);
-    }
-    getCurrentStageOfSession(session) {
-      return session?.stages[session?.currentStatus?.videoIndex];
     }
     getCurrentVideoId() {
-      return this.getCurrentStage()?.youtubeId;
+      return this.currentSlice?.stage.youtubeId;
     }
     resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight - 15;
-      const state = this.getCurrentStage()?.state;
+      const state = "WATCHING";
       if (!state) {
         return;
       }
-      if (state === "SOCIALIZING") {
-        document.getElementById("youtube-outer").style.display = "none";
-        document.getElementById("image-outer").style.display = "none";
-        document.getElementById("gathertown-outer").style.display = "";
-      } else if (state === "PREVIEW") {
-        document.getElementById("youtube-outer").style.display = "none";
-        document.getElementById("image-outer").style.display = "";
-        document.getElementById("gathertown-outer").style.display = "none";
-      } else {
-        document.getElementById("youtube-outer").style.display = "";
-        document.getElementById("image-outer").style.display = "none";
-        document.getElementById("gathertown-outer").style.display = "none";
-      }
+      document.getElementById("youtube-outer").style.display = "";
+      document.getElementById("image-outer").style.display = "none";
+      document.getElementById("gathertown-outer").style.display = "none";
       const contentWidth = this.width * (100 - this.PANEL_WIDTH_PERCENT) / 100;
       const mainContentHeight = this.height - _IeeeVisStreamPlayback.HEADERS_HEIGHT;
       const contentWrap = document.getElementById(_IeeeVisStreamPlayback.CONTENT_WRAPPER_ID);
