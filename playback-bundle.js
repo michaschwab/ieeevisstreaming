@@ -78,13 +78,11 @@
     PlayerState2[PlayerState2["CUED"] = 5] = "CUED";
   })(PlayerState || (PlayerState = {}));
 
-  // videoplayer.ts
-  var IeeeVisVideoPlayer = class {
-    constructor(elementId, getCurrentStage, getCurrentVideoId, getCurrentSessionStatus) {
+  // replayvideoplayer.ts
+  var IeeeVisReplayVideoPlayer = class {
+    constructor(elementId, getCurrentVideoId) {
       this.elementId = elementId;
-      this.getCurrentStage = getCurrentStage;
       this.getCurrentVideoId = getCurrentVideoId;
-      this.getCurrentSessionStatus = getCurrentSessionStatus;
       this.audioContext = new AudioContext();
       this.width = 400;
       this.height = 300;
@@ -172,18 +170,7 @@
       this.player.playVideo();
     }
     getCurrentStartTimeS() {
-      if (!this.getCurrentStage().live || !this.youtubePlayerReady) {
-        const timeMs = new Date().getTime();
-        const videoStartTimestampMs = this.getCurrentSessionStatus()?.videoStartTimestamp || 0;
-        return Math.round((timeMs - videoStartTimestampMs) / 1e3);
-      } else if (this.getCurrentStage().live) {
-        const videoStartTimestampMs = this.getCurrentSessionStatus()?.liveStreamStartTimestamp;
-        if (!videoStartTimestampMs) {
-          return 0;
-        }
-        const timeDiffMs = new Date().getTime() - videoStartTimestampMs;
-        return Math.round(timeDiffMs / 1e3);
-      }
+      return -1;
     }
   };
 
@@ -198,7 +185,7 @@
       this.sessionsData = {};
       this.roomSlices = [];
       this.db = new IeeeVisDb();
-      this.player = new IeeeVisVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentStage.bind(this), this.getCurrentVideoId.bind(this), () => this.currentSession?.currentStatus);
+      this.player = new IeeeVisReplayVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentVideoId.bind(this));
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.loadPreviewImage();
       this.resize();
@@ -212,9 +199,9 @@
       const slices = [];
       const logs = Object.values(logsData);
       for (let i = 1; i < logs.length; i++) {
-        slices.push(this.createSlice(logs[i - 1], logs[i].time - logs[i - 1].time));
+        this.addSliceIfYouTube(slices, logs[i - 1], logs[i].time - logs[i - 1].time);
       }
-      slices.push(this.createSlice(logs[logs.length - 1], -1));
+      this.addSliceIfYouTube(slices, logs[logs.length - 1], -1);
       this.roomSlices = slices;
       this.updateTable();
     }
@@ -241,17 +228,29 @@
         const tr = document.createElement("tr");
         tr.className = active ? "active" : "";
         tr.innerHTML = `
-                <td>` + (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>` : `<a href="${ytUrl}" target="_blank">${stage.title}</a>`) + `
-                </td>
+                <td>${stage.title}</a></td>
                 <td>${startText} UTC</td>
                 <td>${duration}</td>
                 <td>${Math.round(slice.startTimeMs / 1e3)}</td>
                 <td>${Math.round(slice.endTimeMs / 1e3)}</td>`;
+        tr.addEventListener("click", () => this.clickStage(slice));
         tableBody.append(tr);
       }
     }
-    createSlice(log, duration) {
+    clickStage(slice) {
+      console.log("hiii2", slice);
+    }
+    addSliceIfYouTube(slices, log, duration) {
+      const slice = this.createSliceIfYouTube(log, duration);
+      if (slice) {
+        slices.push(slice);
+      }
+    }
+    createSliceIfYouTube(log, duration) {
       const stage = this.getSessionStage(log);
+      if (!stage.youtubeId) {
+        return;
+      }
       const startTimeMs = stage.youtubeId && stage.live ? log.status.videoStartTimestamp - log.status.liveStreamStartTimestamp : 0;
       const endTimeMs = startTimeMs + duration;
       return {
@@ -347,10 +346,10 @@
   if (search && dayIndex) {
     const roomId = search.substr(0, dayIndex - 1);
     const dayString = search.substr(dayIndex + "day=".length);
-    const stream = new IeeeVisStreamPlayback(roomId, dayString);
+    playback = new IeeeVisStreamPlayback(roomId, dayString);
     document.getElementById("wrapper").style.display = "flex";
     onYouTubeIframeAPIReady = () => {
-      stream.onYouTubeIframeAPIReady();
+      playback.onYouTubeIframeAPIReady();
     };
   } else {
     document.getElementById("param-error").style.display = "block";

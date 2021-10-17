@@ -1,6 +1,7 @@
 import {Room, Session, SessionState, SessionStage, RoomDayLogs, Log} from "./session";
 import {IeeeVisDb} from "./ieeevisdb";
 import {IeeeVisVideoPlayer} from "./videoplayer";
+import {IeeeVisReplayVideoPlayer} from "./replayvideoplayer";
 
 class IeeeVisStreamPlayback {
     static PLAYER_ELEMENT_ID = 'ytplayer';
@@ -8,7 +9,7 @@ class IeeeVisStreamPlayback {
 
     room?: Room;
     currentSession?: Session;
-    player: IeeeVisVideoPlayer;
+    player: IeeeVisReplayVideoPlayer;
     db: IeeeVisDb;
 
     width = window.innerWidth;
@@ -21,10 +22,8 @@ class IeeeVisStreamPlayback {
 
     constructor(private ROOM_ID: string, private DAY: string) {
         this.db = new IeeeVisDb();
-        this.player = new IeeeVisVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
-            this.getCurrentStage.bind(this),
-            this.getCurrentVideoId.bind(this),
-            () => this.currentSession?.currentStatus);
+        this.player = new IeeeVisReplayVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
+            this.getCurrentVideoId.bind(this));
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
         this.loadPreviewImage();
 
@@ -38,13 +37,13 @@ class IeeeVisStreamPlayback {
     }
 
     getLogs(logsData: RoomDayLogs) {
-        const slices = [];
+        const slices: RoomSlice[] = [];
         const logs = Object.values(logsData) as Log[];
 
         for(let i = 1; i < logs.length; i++) {
-            slices.push(this.createSlice(logs[i-1], logs[i].time - logs[i-1].time));
+            this.addSliceIfYouTube(slices, logs[i-1], logs[i].time - logs[i-1].time);
         }
-        slices.push(this.createSlice(logs[logs.length-1], -1));
+        this.addSliceIfYouTube(slices, logs[logs.length-1], -1)
 
         this.roomSlices = slices;
         this.updateTable();
@@ -80,21 +79,34 @@ class IeeeVisStreamPlayback {
             const tr = document.createElement('tr');
             tr.className = active ? 'active' : '';
             tr.innerHTML = `
-                <td>` +
-                (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>`
-                    : `<a href="${ytUrl}" target="_blank">${stage.title}</a>`) + `
-                </td>
+                <td>${stage.title}</a></td>
                 <td>${startText} UTC</td>
                 <td>${duration}</td>
                 <td>${Math.round(slice.startTimeMs / 1000)}</td>
                 <td>${Math.round(slice.endTimeMs / 1000)}</td>`;
+            tr.addEventListener('click', () => this.clickStage(slice))
 
             tableBody.append(tr);
         }
     }
 
-    createSlice(log: Log, duration: number): RoomSlice {
+    clickStage(slice: RoomSlice) {
+        console.log('hiii2', slice);
+
+    }
+
+    addSliceIfYouTube(slices: RoomSlice[], log: Log, duration: number) {
+        const slice = this.createSliceIfYouTube(log, duration);
+        if(slice) {
+            slices.push(slice);
+        }
+    }
+
+    createSliceIfYouTube(log: Log, duration: number): RoomSlice | undefined {
         const stage = this.getSessionStage(log);
+        if(!stage.youtubeId) {
+            return;
+        }
         const startTimeMs = stage.youtubeId && stage.live ?
             log.status.videoStartTimestamp - log.status.liveStreamStartTimestamp  : 0;
         const endTimeMs = startTimeMs + duration;
@@ -210,15 +222,16 @@ const search = location.search.indexOf('room=') === -1 ? '' :
     location.search.substr(location.search.indexOf('room=') + 'room='.length);
 const dayIndex = search.indexOf('day=');
 export declare var onYouTubeIframeAPIReady: () => void;
+export declare var playback: IeeeVisStreamPlayback;
 
 if(search && dayIndex) {
     const roomId = search.substr(0, dayIndex - 1);
     const dayString = search.substr(dayIndex + 'day='.length);
 
-    const stream = new IeeeVisStreamPlayback(roomId, dayString);
+    playback = new IeeeVisStreamPlayback(roomId, dayString);
     document.getElementById('wrapper')!.style.display = 'flex';
     onYouTubeIframeAPIReady = () => {
-        stream.onYouTubeIframeAPIReady();
+        playback.onYouTubeIframeAPIReady();
     }
 } else {
     document.getElementById('param-error')!.style.display = 'block';
