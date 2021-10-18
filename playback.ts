@@ -23,7 +23,8 @@ class IeeeVisStreamPlayback {
     constructor(private ROOM_ID: string, private DAY: string) {
         this.db = new IeeeVisDb();
         this.player = new IeeeVisReplayVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
-            this.getCurrentVideoId.bind(this));
+            this.getCurrentVideoId.bind(this),
+            this.getCurrentStartEndTime.bind(this));
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
 
         this.resize();
@@ -90,9 +91,15 @@ class IeeeVisStreamPlayback {
     }
 
     clickStage(slice: RoomSlice) {
-        console.log('hiii2', slice);
+        console.log('loading slice', slice);
         this.currentSlice = slice;
         this.player.updateVideo();
+    }
+
+    getCurrentStartEndTime(): [number, number] {
+        const startS = Math.round((this.currentSlice?.startTimeMs || 0) / 1000);
+        const endS = Math.round((this.currentSlice?.endTimeMs || 0) / 1000);
+        return [startS, endS];
     }
 
     addSliceIfYouTube(slices: RoomSlice[], log: Log, duration: number) {

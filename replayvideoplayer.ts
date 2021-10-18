@@ -14,7 +14,8 @@ export class IeeeVisReplayVideoPlayer {
     youtubePlayerReady = false;
 
     constructor(private elementId: string,
-                private getCurrentVideoId: OmitThisParameter<() => string | undefined>) {
+                private getCurrentVideoId: OmitThisParameter<() => string | undefined>,
+                private getStartEndTimes: () => [number, number]) {
         this.init();
     }
 
@@ -59,32 +60,36 @@ export class IeeeVisReplayVideoPlayer {
         console.log('player ready', this.player, this.getCurrentVideoId());
         this.youtubePlayerReady = true;
 
+        console.log(this.audioContext);
         if(this.audioContext.state === "suspended") {
             this.player!.mute();
         }
         this.player!.playVideo();
 
+
         this.updateVideo();
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
-        if(state.data === PlayerState.UNSTARTED) {
-            // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
-            this.player!.seekTo(this.getCurrentStartTimeS() || 0, true);
-        }
+        // if(state.data === PlayerState.UNSTARTED) {
+        //     // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
+        //     this.player!.seekTo(this.getCurrentStartTimeS() || 0, true);
+        // }
 
-        if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
-            const startTime = this.getCurrentStartTimeS() || 0;
-            const currentTime = this.player!.getCurrentTime();
-            if(Math.abs(startTime - currentTime) > 5) {
-                this.player!.seekTo(startTime, true);
-                console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime(), this.player!.getDuration(), this.player);
-            }
-        }
+        // if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
+        //     const [startTime] = this.getStartEndTimes();
+        //     const currentTime = this.player!.getCurrentTime();
+        //     if(Math.abs(startTime - currentTime) > 5) {
+        //         this.player!.seekTo(startTime, true);
+        //         console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime(), this.player!.getDuration(), this.player);
+        //     }
+        // }
     }
 
     private loadYoutubePlayer() {
         this.youtubePlayerLoaded = true;
+        const [start, end] = this.getStartEndTimes();
+        console.log('loadYoutubePlayer');
 
         this.player = new YT.Player(this.elementId, {
             width: this.width,
@@ -98,7 +103,8 @@ export class IeeeVisReplayVideoPlayer {
                 'rel': 0,
                 'modestbranding': 1,
                 'mute': 0,
-                start: this.getCurrentStartTimeS(),
+                start,
+                end
             },
             events: {
                 'onReady': this.onPlayerReady.bind(this),
@@ -109,16 +115,19 @@ export class IeeeVisReplayVideoPlayer {
 
     private changeYoutubeVideo() {
         // The seeking in the following line does not work for 0 (see workaround above).
-        this.player!.loadVideoById(this.getCurrentVideoId()!, this.getCurrentStartTimeS());
+        const [startSeconds, endSeconds] = this.getStartEndTimes();
+        this.player!.loadVideoById({videoId: this.getCurrentVideoId()!, startSeconds, endSeconds});
+        //console.log('test', startSeconds, endSeconds, {videoId: this.getCurrentVideoId()!, startSeconds, endSeconds, start: startSeconds, end: endSeconds});
         this.player!.playVideo();
     }
 
     private getCurrentStartTimeS() {
+        return this.getStartEndTimes()[0];
         // const timeMs = new Date().getTime();
         // const videoStartTimestampMs = this.getCurrentSessionStatus()?.videoStartTimestamp || 0;
         //
         // return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        return 0;
+        //return 0;
     }
 }
 

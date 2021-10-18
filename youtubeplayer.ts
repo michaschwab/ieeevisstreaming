@@ -3,7 +3,7 @@ export interface YoutubePlayer {
     //playVideoAt: (time: number) => void;
     pauseVideo: () => void;
     stopVideo: () => void;
-    loadVideoById: (videoId: string, startTime?: number, size?: string) => void;
+    loadVideoById: (videoId: string|{ startSeconds: number; endSeconds: number; videoId: string }, startTime?: number, size?: string) => void;
     mute: () => void;
     unMute: () => void;
     seekTo: (timeS: number, allowSeekAhead: boolean) => void;

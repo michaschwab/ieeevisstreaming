@@ -67,22 +67,12 @@
     }
   };
 
-  // youtubeplayer.ts
-  var PlayerState;
-  (function(PlayerState2) {
-    PlayerState2[PlayerState2["UNSTARTED"] = -1] = "UNSTARTED";
-    PlayerState2[PlayerState2["ENDED"] = 0] = "ENDED";
-    PlayerState2[PlayerState2["PLAYING"] = 1] = "PLAYING";
-    PlayerState2[PlayerState2["PAUSED"] = 2] = "PAUSED";
-    PlayerState2[PlayerState2["BUFFERING"] = 3] = "BUFFERING";
-    PlayerState2[PlayerState2["CUED"] = 5] = "CUED";
-  })(PlayerState || (PlayerState = {}));
-
   // replayvideoplayer.ts
   var IeeeVisReplayVideoPlayer = class {
-    constructor(elementId, getCurrentVideoId) {
+    constructor(elementId, getCurrentVideoId, getStartEndTimes) {
       this.elementId = elementId;
       this.getCurrentVideoId = getCurrentVideoId;
+      this.getStartEndTimes = getStartEndTimes;
       this.audioContext = new AudioContext();
       this.width = 400;
       this.height = 300;
@@ -125,6 +115,7 @@
     onPlayerReady() {
       console.log("player ready", this.player, this.getCurrentVideoId());
       this.youtubePlayerReady = true;
+      console.log(this.audioContext);
       if (this.audioContext.state === "suspended") {
         this.player.mute();
       }
@@ -132,20 +123,11 @@
       this.updateVideo();
     }
     onPlayerStateChange(state) {
-      if (state.data === PlayerState.UNSTARTED) {
-        this.player.seekTo(this.getCurrentStartTimeS() || 0, true);
-      }
-      if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
-        const startTime = this.getCurrentStartTimeS() || 0;
-        const currentTime = this.player.getCurrentTime();
-        if (Math.abs(startTime - currentTime) > 5) {
-          this.player.seekTo(startTime, true);
-          console.log("lagging behind. seek.", this.getCurrentStartTimeS(), this.player.getCurrentTime(), this.player.getDuration(), this.player);
-        }
-      }
     }
     loadYoutubePlayer() {
       this.youtubePlayerLoaded = true;
+      const [start, end] = this.getStartEndTimes();
+      console.log("loadYoutubePlayer");
       this.player = new YT.Player(this.elementId, {
         width: this.width,
         height: this.height,
@@ -157,7 +139,8 @@
           "rel": 0,
           "modestbranding": 1,
           "mute": 0,
-          start: this.getCurrentStartTimeS()
+          start,
+          end
         },
         events: {
           "onReady": this.onPlayerReady.bind(this),
@@ -166,11 +149,12 @@
       });
     }
     changeYoutubeVideo() {
-      this.player.loadVideoById(this.getCurrentVideoId(), this.getCurrentStartTimeS());
+      const [startSeconds, endSeconds] = this.getStartEndTimes();
+      this.player.loadVideoById({videoId: this.getCurrentVideoId(), startSeconds, endSeconds});
       this.player.playVideo();
     }
     getCurrentStartTimeS() {
-      return 0;
+      return this.getStartEndTimes()[0];
     }
   };
 
@@ -185,7 +169,7 @@
       this.sessionsData = {};
       this.roomSlices = [];
       this.db = new IeeeVisDb();
-      this.player = new IeeeVisReplayVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentVideoId.bind(this));
+      this.player = new IeeeVisReplayVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentVideoId.bind(this), this.getCurrentStartEndTime.bind(this));
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
@@ -237,9 +221,14 @@
       }
     }
     clickStage(slice) {
-      console.log("hiii2", slice);
+      console.log("loading slice", slice);
       this.currentSlice = slice;
       this.player.updateVideo();
+    }
+    getCurrentStartEndTime() {
+      const startS = Math.round((this.currentSlice?.startTimeMs || 0) / 1e3);
+      const endS = Math.round((this.currentSlice?.endTimeMs || 0) / 1e3);
+      return [startS, endS];
     }
     addSliceIfYouTube(slices, log, duration) {
       const slice = this.createSliceIfYouTube(log, duration);
