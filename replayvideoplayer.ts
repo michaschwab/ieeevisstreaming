@@ -15,7 +15,8 @@ export class IeeeVisReplayVideoPlayer {
 
     constructor(private elementId: string,
                 private getCurrentVideoId: OmitThisParameter<() => string | undefined>,
-                private getStartEndTimes: () => [number, number]) {
+                private getStartEndTimes: () => [number, number],
+                private onPlayerEnded: () => void) {
         this.init();
     }
 
@@ -64,7 +65,7 @@ export class IeeeVisReplayVideoPlayer {
         if(this.audioContext.state === "suspended") {
             this.player!.mute();
         }
-        this.player!.playVideo();
+        //this.player!.playVideo();
 
 
         this.updateVideo();
@@ -84,6 +85,31 @@ export class IeeeVisReplayVideoPlayer {
         //         console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime(), this.player!.getDuration(), this.player);
         //     }
         // }
+        console.log('state:', state.data);
+        if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
+            const currentTime = this.player!.getCurrentTime();
+            const [start, end] = this.getStartEndTimes();
+            if(currentTime < start || currentTime > end) {
+                //this.player?.pauseVideo();
+                if(currentTime < start) {
+                    this.player?.seekTo(start, true);
+                } else {
+                    this.player?.seekTo(end, false);
+                    this.player?.pauseVideo();
+                }
+                console.log('outside range. moving. current:', currentTime, ', start end:', start, end);
+            }
+        } else if(state.data === PlayerState.ENDED) {
+            const currentTime = this.player!.getCurrentTime();
+            const [start, end] = this.getStartEndTimes();
+            console.log('ended', currentTime, start, end);
+
+            if(currentTime >= end) {
+                console.log('at end of stage');
+                this.onPlayerEnded();
+            }
+
+        }
     }
 
     private loadYoutubePlayer() {

@@ -67,12 +67,24 @@
     }
   };
 
+  // youtubeplayer.ts
+  var PlayerState;
+  (function(PlayerState2) {
+    PlayerState2[PlayerState2["UNSTARTED"] = -1] = "UNSTARTED";
+    PlayerState2[PlayerState2["ENDED"] = 0] = "ENDED";
+    PlayerState2[PlayerState2["PLAYING"] = 1] = "PLAYING";
+    PlayerState2[PlayerState2["PAUSED"] = 2] = "PAUSED";
+    PlayerState2[PlayerState2["BUFFERING"] = 3] = "BUFFERING";
+    PlayerState2[PlayerState2["CUED"] = 5] = "CUED";
+  })(PlayerState || (PlayerState = {}));
+
   // replayvideoplayer.ts
   var IeeeVisReplayVideoPlayer = class {
-    constructor(elementId, getCurrentVideoId, getStartEndTimes) {
+    constructor(elementId, getCurrentVideoId, getStartEndTimes, onPlayerEnded) {
       this.elementId = elementId;
       this.getCurrentVideoId = getCurrentVideoId;
       this.getStartEndTimes = getStartEndTimes;
+      this.onPlayerEnded = onPlayerEnded;
       this.audioContext = new AudioContext();
       this.width = 400;
       this.height = 300;
@@ -119,10 +131,31 @@
       if (this.audioContext.state === "suspended") {
         this.player.mute();
       }
-      this.player.playVideo();
       this.updateVideo();
     }
     onPlayerStateChange(state) {
+      console.log("state:", state.data);
+      if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
+        const currentTime = this.player.getCurrentTime();
+        const [start, end] = this.getStartEndTimes();
+        if (currentTime < start || currentTime > end) {
+          if (currentTime < start) {
+            this.player?.seekTo(start, true);
+          } else {
+            this.player?.seekTo(end, false);
+            this.player?.pauseVideo();
+          }
+          console.log("outside range. moving. current:", currentTime, ", start end:", start, end);
+        }
+      } else if (state.data === PlayerState.ENDED) {
+        const currentTime = this.player.getCurrentTime();
+        const [start, end] = this.getStartEndTimes();
+        console.log("ended", currentTime, start, end);
+        if (currentTime >= end) {
+          console.log("at end of stage");
+          this.onPlayerEnded();
+        }
+      }
     }
     loadYoutubePlayer() {
       this.youtubePlayerLoaded = true;
@@ -170,7 +203,7 @@
       this.sessionsData = {};
       this.roomSlices = [];
       this.db = new IeeeVisDb();
-      this.player = new IeeeVisReplayVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentVideoId.bind(this), this.getCurrentStartEndTime.bind(this));
+      this.player = new IeeeVisReplayVideoPlayer(_IeeeVisStreamPlayback.PLAYER_ELEMENT_ID, this.getCurrentVideoId.bind(this), this.getCurrentStartEndTime.bind(this), this.onPlayerEnded.bind(this));
       this.db.loadRoom(ROOM_ID, (room) => this.onRoomUpdated(room));
       this.resize();
       window.addEventListener("resize", this.resize.bind(this));
@@ -220,6 +253,19 @@
       this.currentSlice = slice;
       this.player.updateVideo();
       this.updateTable();
+    }
+    onPlayerEnded() {
+      if (!this.currentSlice) {
+        return;
+      }
+      const index = this.roomSlices.indexOf(this.currentSlice);
+      if (index === -1) {
+        return;
+      }
+      if (index + 1 >= this.roomSlices.length) {
+        return;
+      }
+      this.clickStage(this.roomSlices[index + 1]);
     }
     getCurrentStartEndTime() {
       const startS = Math.round((this.currentSlice?.startTimeMs || 0) / 1e3);

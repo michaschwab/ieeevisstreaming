@@ -25,7 +25,8 @@ class IeeeVisStreamPlayback {
         this.db = new IeeeVisDb();
         this.player = new IeeeVisReplayVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
             this.getCurrentVideoId.bind(this),
-            this.getCurrentStartEndTime.bind(this));
+            this.getCurrentStartEndTime.bind(this),
+            this.onPlayerEnded.bind(this));
         this.db.loadRoom(ROOM_ID, room => this.onRoomUpdated(room));
 
         this.resize();
@@ -92,6 +93,21 @@ class IeeeVisStreamPlayback {
         this.currentSlice = slice;
         this.player.updateVideo();
         this.updateTable();
+    }
+
+    onPlayerEnded() {
+        if(!this.currentSlice) {
+            return;
+        }
+        const index = this.roomSlices.indexOf(this.currentSlice);
+        if(index === -1) {
+            return;
+        }
+        if (index + 1 >= this.roomSlices.length) {
+            return;
+        }
+        // Auto-advance to next stage.
+        this.clickStage(this.roomSlices[index + 1]);
     }
 
     getCurrentStartEndTime(): [number, number] {
