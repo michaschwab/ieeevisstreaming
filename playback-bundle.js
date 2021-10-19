@@ -165,7 +165,7 @@
       this.DAY = DAY;
       this.width = window.innerWidth;
       this.height = window.innerHeight;
-      this.CHAT_PADDING_LEFT_PX = 20;
+      this.CHAT_PADDING_LEFT_PX = 30;
       this.PANEL_WIDTH_PERCENT = 30;
       this.sessionsData = {};
       this.roomSlices = [];

@@ -24,6 +24,7 @@ tr.active {
 #playback-table {
     width: 100%;
     cursor: pointer;
+    font-size: 20px;
 }
 #playback-table .active {
     cursor: default;

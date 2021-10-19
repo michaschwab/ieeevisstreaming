@@ -15,7 +15,7 @@ class IeeeVisStreamPlayback {
     width = window.innerWidth;
     height = window.innerHeight; // Placeholder values. Will be replaced in the resize function.
     static HEADERS_HEIGHT = 41;
-    CHAT_PADDING_LEFT_PX = 20;
+    CHAT_PADDING_LEFT_PX = 30;
 
     PANEL_WIDTH_PERCENT = 30;
     private sessionsData: {[id: string]: Session} = {};
