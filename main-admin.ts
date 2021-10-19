@@ -32,6 +32,8 @@ class IeeeVisStreamAdmin {
 
         document.getElementById('track-title')!.innerText = this.session.name;
         document.getElementById('room-id')!.innerText = this.session.room;
+        document.getElementById('session-time')!.innerText =
+            `${formatDate(this.session.time_start)} until ${formatDate(this.session.time_end)}`;
 
         this.db.loadRoom(session.room, room => this.onRoomUpdated(session.room, room));
     }
@@ -42,7 +44,8 @@ class IeeeVisStreamAdmin {
             return;
         }
         this.room = room;
-        document.getElementById('room-name')!.innerText = room.name;
+        Array.from(document.getElementsByClassName('room-name')).map(el => (el as HTMLElement).innerText = room.name);
+        //document.getElementById('room-name')!.innerText = room.name;
         document.getElementById('room-currentsession')!.innerText = room.currentSession;
 
         const isLive = this.isLive();
@@ -58,8 +61,10 @@ class IeeeVisStreamAdmin {
 
         if(this.user && this.admins && this.admins.hasOwnProperty(this.user.uid)) {
             document.getElementById('access-alert')!.style.display = 'none';
+            document.getElementById('admin-content')!.style.display = 'block';
         } else {
             document.getElementById('access-alert')!.style.display = '';
+            document.getElementById('admin-content')!.style.display = 'none';
         }
         this.updateTable();
     }
@@ -68,6 +73,11 @@ class IeeeVisStreamAdmin {
         if(!this.session || !this.user || !this.admins || !this.admins.hasOwnProperty(this.user.uid)) {
             return;
         }
+
+        document.getElementById('zoom-url')!.innerHTML =
+            `<a href="${this.session.zoom_url}">${this.session.zoom_url}</a>`;
+
+        document.getElementById('session-notes')!.innerText = this.session.notes;
 
         const tableBody = document.getElementById('videos-table-body') as HTMLTableElement;
         tableBody.innerHTML = '';
@@ -82,8 +92,7 @@ class IeeeVisStreamAdmin {
             const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
             const imgUrl = stage.imageUrl;
             let duration = '';
-            const startText = !stage.time_start ? '' :
-                new Date(stage.time_start).toISOString().substr(0, 16).replace('T', ', ');
+            const startText = !stage.time_start ? '' : formatDate(stage.time_start);
 
             if(stage.time_start && stage.time_end) {
                 const start = new Date(stage.time_start);
@@ -190,6 +199,10 @@ class IeeeVisStreamAdmin {
     private isLive() {
         return this.room?.currentSession == this.SESSION_ID;
     }
+}
+
+function formatDate(time: string) {
+    return new Date(time).toISOString().substr(0, 16).replace('T', ', ')
 }
 
 const sessionId = location.search.indexOf('session=') === -1 ? '' :

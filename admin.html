@@ -12,7 +12,6 @@
         <div id="firebaseui-auth-container"></div>
         <div id="welcome">
             <h3>Welcome, <span id="displayName"></span>! <a href="#" id="sign-out">Log out</a></h3>
-
         </div>
     </div>
 
@@ -24,44 +23,54 @@
         <p>UID: <span id="uid"></span></p>
     </div>
 
-    <div id="live-session-alert">
-        <p>
-            <span style="color: red">🔴</span>
-            This session is being streamed live in <span id="live-room-name"></span>
-        </p>
+    <div id="admin-content">
+
+        <div id="session-notes-wrap">
+            <table>
+                <tr><th>Session Date & Time</th><td><span id="session-time"></span></td></tr>
+                <tr><th>Zoom URL</th><td><span id="zoom-url"></span></td></tr>
+                <tr><th>Other notes</th><td><span id="session-notes"></span></td></tr>
+                <tr><th>Room</th><td><span class="room-name"></span></td></tr>
+            </table>
+        </div>
+
+        <div id="live-session-alert">
+            <p>
+                <span style="color: red">🔴</span>
+                This session is being streamed live in <span id="live-room-name"></span>
+            </p>
+        </div>
+
+        <div id="videos">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Start</th>
+                        <th>Duration</th>
+                        <th>Time Played</th>
+                        <th>State</th>
+                    </tr>
+                </thead>
+                <tbody id="videos-table-body">
+
+                </tbody>
+            </table>
+
+        </div>
+
+        <button id="previous-video-button">Previous Video</button>
+        <button id="next-video-button">Next Video</button>
+
+        <br />
+        <br />
+
+        <button id="session-to-room-button">
+            Make this session now live on <span id="room-name" class="room-name"></span>
+            (room id: <span id="room-id"></span>, current session: <span id="room-currentsession"></span>)
+        </button>
     </div>
-
-
-    <div id="videos">
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Content</th>
-                    <th>Start</th>
-                    <th>Duration</th>
-                    <th>Time Played</th>
-                    <th>State</th>
-                </tr>
-            </thead>
-            <tbody id="videos-table-body">
-
-            </tbody>
-        </table>
-
-    </div>
-
-    <button id="previous-video-button">Previous Video</button>
-    <button id="next-video-button">Next Video</button>
-
-    <br />
-    <br />
-    <br />
-
-    <button id="session-to-room-button">
-        Make this session now live on <span id="room-name"></span>
-        (room id: <span id="room-id"></span>, current session: <span id="room-currentsession"></span>)
-    </button>
 </div>
 
 <div id="param-error" style="display: none">

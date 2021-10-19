@@ -129,6 +129,7 @@
       this.session = session;
       document.getElementById("track-title").innerText = this.session.name;
       document.getElementById("room-id").innerText = this.session.room;
+      document.getElementById("session-time").innerText = `${formatDate(this.session.time_start)} until ${formatDate(this.session.time_end)}`;
       this.db.loadRoom(session.room, (room) => this.onRoomUpdated(session.room, room));
     }
     onRoomUpdated(roomId, room) {
@@ -136,7 +137,7 @@
         return;
       }
       this.room = room;
-      document.getElementById("room-name").innerText = room.name;
+      Array.from(document.getElementsByClassName("room-name")).map((el) => el.innerText = room.name);
       document.getElementById("room-currentsession").innerText = room.currentSession;
       const isLive = this.isLive();
       document.getElementById("live-session-alert").style.display = isLive ? "block" : "none";
@@ -148,8 +149,10 @@
       document.getElementById("uid").innerText = this.user?.uid || "-";
       if (this.user && this.admins && this.admins.hasOwnProperty(this.user.uid)) {
         document.getElementById("access-alert").style.display = "none";
+        document.getElementById("admin-content").style.display = "block";
       } else {
         document.getElementById("access-alert").style.display = "";
+        document.getElementById("admin-content").style.display = "none";
       }
       this.updateTable();
     }
@@ -157,6 +160,8 @@
       if (!this.session || !this.user || !this.admins || !this.admins.hasOwnProperty(this.user.uid)) {
         return;
       }
+      document.getElementById("zoom-url").innerHTML = `<a href="${this.session.zoom_url}">${this.session.zoom_url}</a>`;
+      document.getElementById("session-notes").innerText = this.session.notes;
       const tableBody = document.getElementById("videos-table-body");
       tableBody.innerHTML = "";
       const currentVideoPlayedMs = new Date().getTime() - this.session.currentStatus.videoStartTimestamp;
@@ -168,7 +173,7 @@
         const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
         const imgUrl = stage.imageUrl;
         let duration = "";
-        const startText = !stage.time_start ? "" : new Date(stage.time_start).toISOString().substr(0, 16).replace("T", ", ");
+        const startText = !stage.time_start ? "" : formatDate(stage.time_start);
         if (stage.time_start && stage.time_end) {
           const start = new Date(stage.time_start);
           const end = new Date(stage.time_end);
@@ -254,6 +259,9 @@
       return this.room?.currentSession == this.SESSION_ID;
     }
   };
+  function formatDate(time) {
+    return new Date(time).toISOString().substr(0, 16).replace("T", ", ");
+  }
   var sessionId = location.search.indexOf("session=") === -1 ? "" : location.search.substr(location.search.indexOf("session=") + "session=".length);
   if (sessionId) {
     const streamAdmin = new IeeeVisStreamAdmin(sessionId);

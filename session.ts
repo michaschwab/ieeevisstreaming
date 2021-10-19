@@ -7,6 +7,10 @@ export interface Session {
     stages: {
         [index: string]: SessionStage;
     };
+    notes: string;
+    has_live_captions: boolean;
+    live_captions_url: string;
+    zoom_url: string;
 }
 
 export interface Room {
@@ -31,6 +35,10 @@ export interface SessionStage {
     state: SessionState;
     time_start?: string;
     time_end?: string;
+    contributors?: string[];
+    paper_uid?: string;
+    video_length: string;
+    notes: string;
 }
 
 export type SessionState = "WATCHING" | "QA" | "SOCIALIZING" | "PREVIEW";
