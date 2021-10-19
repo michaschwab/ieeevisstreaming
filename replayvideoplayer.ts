@@ -87,12 +87,13 @@ export class IeeeVisReplayVideoPlayer {
         const [start, end] = this.getStartEndTimes();
 
         if(currentTime >= end && [PlayerState.PLAYING, PlayerState.ENDED].indexOf(this.latestState) !== -1) {
-            console.log('at end of stage');
+            console.log('at end of stage (TIMING)');
             this.onPlayerEnded();
         }
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
+        const lastState = this.latestState;
         this.latestState = state.data;
         // if(state.data === PlayerState.UNSTARTED) {
         //     // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
@@ -124,10 +125,10 @@ export class IeeeVisReplayVideoPlayer {
                 }
                 console.log('outside range. moving. current:', currentTime, ', start end:', start, end);
             }
-        } else if(state.data === PlayerState.ENDED) {
+        } else if(state.data === PlayerState.ENDED && lastState == PlayerState.PLAYING) {
             //this.checkBounds();
             // This is needed in case of the technician switch happening after the duration of the video.
-            console.log('at end of stage');
+            console.log('at end of stage (ENDED)');
             this.onPlayerEnded();
         }
     }
