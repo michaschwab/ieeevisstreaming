@@ -19,7 +19,8 @@ tr {
     background: #f8f8f8;
 }
 tr.active {
-    background: #eee;
+    background: #d5d5d5;
+    font-weight: bold;
 }
 #playback-table {
     width: 100%;
