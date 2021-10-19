@@ -116,7 +116,8 @@ class IeeeVisStreamAdmin {
                 <td>${startText}</td>
                 <td>${duration}</td>
                 <td>${timePlayed}</td>
-                <td>${stage.state}</td>`;
+                <td>${stage.state}</td>
+                <td>${stage.notes || ''}</td>`;
 
             tableBody.append(tr);
         }
