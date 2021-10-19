@@ -187,9 +187,6 @@
       }
       this.addSliceIfYouTube(slices, logs[logs.length - 1], -1);
       this.roomSlices = slices;
-      if (slices.length) {
-        this.clickStage(slices[0]);
-      }
       this.updateTable();
     }
     updateTable() {
@@ -267,10 +264,6 @@
     resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight - 15;
-      const state = "WATCHING";
-      if (!state) {
-        return;
-      }
       document.getElementById("youtube-outer").style.display = "";
       document.getElementById("image-outer").style.display = "none";
       document.getElementById("gathertown-outer").style.display = "none";
