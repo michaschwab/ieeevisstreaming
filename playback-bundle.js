@@ -187,6 +187,9 @@
       }
       this.addSliceIfYouTube(slices, logs[logs.length - 1], -1);
       this.roomSlices = slices;
+      if (slices.length) {
+        this.clickStage(slices[0]);
+      }
       this.updateTable();
     }
     updateTable() {
