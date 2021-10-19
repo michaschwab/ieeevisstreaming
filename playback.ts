@@ -48,6 +48,9 @@ class IeeeVisStreamPlayback {
         this.addSliceIfYouTube(slices, logs[logs.length-1], -1)
 
         this.roomSlices = slices;
+        if(this.roomSlices.length) {
+            this.clickStage(this.roomSlices[this.roomSlices.length - 1]);
+        }
 
         this.updateTable();
     }
