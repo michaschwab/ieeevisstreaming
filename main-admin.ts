@@ -15,6 +15,7 @@ class IeeeVisStreamAdmin {
 
         new IeeeVisAuth(this.onUserUpdated.bind(this));
 
+        document.getElementById('timezone')!.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone;
         document.getElementById('previous-video-button')!.onclick = this.previousVideo.bind(this);
         document.getElementById('next-video-button')!.onclick = this.nextVideo.bind(this);
         document.getElementById('session-to-room-button')!.onclick = this.sessionToRoom.bind(this);
