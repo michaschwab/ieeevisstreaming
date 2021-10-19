@@ -165,6 +165,7 @@
       this.DAY = DAY;
       this.width = window.innerWidth;
       this.height = window.innerHeight;
+      this.CHAT_PADDING_LEFT_PX = 20;
       this.PANEL_WIDTH_PERCENT = 30;
       this.sessionsData = {};
       this.roomSlices = [];
@@ -196,10 +197,7 @@
       tableBody.innerHTML = "";
       for (const slice of this.roomSlices) {
         const stage = slice.stage;
-        const active = false;
-        const isPreview = stage.state === "PREVIEW";
-        const ytUrl = `https://www.youtube.com/watch?v=${stage.youtubeId}`;
-        const imgUrl = stage.imageUrl;
+        const active = this.currentSlice === slice;
         let duration = "";
         const startText = !slice.log.time ? "" : new Date(slice.log.time).toISOString().substr(0, 16).replace("T", ", ");
         if (slice.duration != -1) {
@@ -212,10 +210,7 @@
         tr.className = active ? "active" : "";
         tr.innerHTML = `
                 <td>${stage.title}</a></td>
-                <td>${startText} UTC</td>
-                <td>${duration}</td>
-                <td>${Math.round(slice.startTimeMs / 1e3)}</td>
-                <td>${Math.round(slice.endTimeMs / 1e3)}</td>`;
+                <td>${duration}</td>`;
         tr.addEventListener("click", () => this.clickStage(slice));
         tableBody.append(tr);
       }
@@ -224,6 +219,7 @@
       console.log("loading slice", slice);
       this.currentSlice = slice;
       this.player.updateVideo();
+      this.updateTable();
     }
     getCurrentStartEndTime() {
       const startS = Math.round((this.currentSlice?.startTimeMs || 0) / 1e3);
@@ -280,17 +276,8 @@
       const contentWrap = document.getElementById(_IeeeVisStreamPlayback.CONTENT_WRAPPER_ID);
       contentWrap.style.width = `${contentWidth}px`;
       this.player.setSize(contentWidth, mainContentHeight);
-      const previewImg = document.getElementById("preview-img");
-      if (previewImg) {
-        document.getElementById("image-outer").style.height = `${mainContentHeight}px`;
-        previewImg.style.maxWidth = `${contentWidth}px`;
-        previewImg.style.maxHeight = `${mainContentHeight}px`;
-      }
-      const gatherFrame = document.getElementById("gathertown-iframe");
-      if (gatherFrame) {
-        gatherFrame.setAttribute("width", `${contentWidth}`);
-        gatherFrame.setAttribute("height", `${mainContentHeight}`);
-      }
+      const panelWidth = this.width * this.PANEL_WIDTH_PERCENT / 100 - this.CHAT_PADDING_LEFT_PX;
+      document.getElementById("sidepanel").style.width = `${panelWidth}px`;
     }
   };
   var IeeeVisStreamPlayback = _IeeeVisStreamPlayback;
