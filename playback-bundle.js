@@ -91,6 +91,7 @@
       this.youtubeApiReady = false;
       this.youtubePlayerLoaded = false;
       this.youtubePlayerReady = false;
+      this.atEndOfSegmentBecauseMovedBack = false;
       this.init();
     }
     onYouTubeIframeAPIReady() {
@@ -132,9 +133,26 @@
         this.player.mute();
       }
       this.updateVideo();
+      setInterval(() => this.checkBounds(), 1e3);
+    }
+    checkBounds() {
+      if (!this.latestState) {
+        return;
+      }
+      if (this.atEndOfSegmentBecauseMovedBack) {
+        return;
+      }
+      const currentTime = this.player.getCurrentTime();
+      const [start, end] = this.getStartEndTimes();
+      if (currentTime >= end && [PlayerState.PLAYING, PlayerState.ENDED].indexOf(this.latestState) !== -1) {
+        console.log("at end of stage");
+        this.onPlayerEnded();
+      }
     }
     onPlayerStateChange(state) {
+      this.latestState = state.data;
       console.log("state:", state.data);
+      this.atEndOfSegmentBecauseMovedBack = false;
       if (state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
         const currentTime = this.player.getCurrentTime();
         const [start, end] = this.getStartEndTimes();
@@ -142,19 +160,15 @@
           if (currentTime < start) {
             this.player?.seekTo(start, true);
           } else {
-            this.player?.seekTo(end, false);
+            this.player?.seekTo(end, true);
+            this.atEndOfSegmentBecauseMovedBack = true;
             this.player?.pauseVideo();
           }
           console.log("outside range. moving. current:", currentTime, ", start end:", start, end);
         }
       } else if (state.data === PlayerState.ENDED) {
-        const currentTime = this.player.getCurrentTime();
-        const [start, end] = this.getStartEndTimes();
-        console.log("ended", currentTime, start, end);
-        if (currentTime >= end) {
-          console.log("at end of stage");
-          this.onPlayerEnded();
-        }
+        console.log("at end of stage");
+        this.onPlayerEnded();
       }
     }
     loadYoutubePlayer() {

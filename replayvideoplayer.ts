@@ -69,9 +69,31 @@ export class IeeeVisReplayVideoPlayer {
 
 
         this.updateVideo();
+        setInterval(() => this.checkBounds(), 1000);
+    }
+
+    private latestState?: PlayerState;
+    private atEndOfSegmentBecauseMovedBack = false;
+
+    private checkBounds() {
+        if(!this.latestState) {
+            return;
+        }
+        if(this.atEndOfSegmentBecauseMovedBack) {
+            return;
+        }
+
+        const currentTime = this.player!.getCurrentTime();
+        const [start, end] = this.getStartEndTimes();
+
+        if(currentTime >= end && [PlayerState.PLAYING, PlayerState.ENDED].indexOf(this.latestState) !== -1) {
+            console.log('at end of stage');
+            this.onPlayerEnded();
+        }
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
+        this.latestState = state.data;
         // if(state.data === PlayerState.UNSTARTED) {
         //     // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
         //     this.player!.seekTo(this.getCurrentStartTimeS() || 0, true);
@@ -86,6 +108,8 @@ export class IeeeVisReplayVideoPlayer {
         //     }
         // }
         console.log('state:', state.data);
+        this.atEndOfSegmentBecauseMovedBack = false;
+
         if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
             const currentTime = this.player!.getCurrentTime();
             const [start, end] = this.getStartEndTimes();
@@ -94,21 +118,17 @@ export class IeeeVisReplayVideoPlayer {
                 if(currentTime < start) {
                     this.player?.seekTo(start, true);
                 } else {
-                    this.player?.seekTo(end, false);
+                    this.player?.seekTo(end, true);
+                    this.atEndOfSegmentBecauseMovedBack = true;
                     this.player?.pauseVideo();
                 }
                 console.log('outside range. moving. current:', currentTime, ', start end:', start, end);
             }
         } else if(state.data === PlayerState.ENDED) {
-            const currentTime = this.player!.getCurrentTime();
-            const [start, end] = this.getStartEndTimes();
-            console.log('ended', currentTime, start, end);
-
-            if(currentTime >= end) {
-                console.log('at end of stage');
-                this.onPlayerEnded();
-            }
-
+            //this.checkBounds();
+            // This is needed in case of the technician switch happening after the duration of the video.
+            console.log('at end of stage');
+            this.onPlayerEnded();
         }
     }
 
