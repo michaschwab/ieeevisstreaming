@@ -261,7 +261,7 @@
     }
   };
   function formatDate(time) {
-    return new Date(time).toISOString().substr(0, 16).replace("T", ", ");
+    return new Date(time).toLocaleString();
   }
   var sessionId = location.search.indexOf("session=") === -1 ? "" : location.search.substr(location.search.indexOf("session=") + "session=".length);
   if (sessionId) {

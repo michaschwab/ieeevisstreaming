@@ -203,7 +203,8 @@ class IeeeVisStreamAdmin {
 }
 
 function formatDate(time: string) {
-    return new Date(time).toISOString().substr(0, 16).replace('T', ', ')
+    //return new Date(time).toISOString().substr(0, 16).replace('T', ', ')
+    return new Date(time).toLocaleString();
 }
 
 const sessionId = location.search.indexOf('session=') === -1 ? '' :
