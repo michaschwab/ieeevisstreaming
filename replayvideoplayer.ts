@@ -164,17 +164,9 @@ export class IeeeVisReplayVideoPlayer {
         // The seeking in the following line does not work for 0 (see workaround above).
         const [startSeconds, endSeconds] = this.getStartEndTimes();
         this.player!.loadVideoById({videoId: this.getCurrentVideoId()!, startSeconds, endSeconds});
+        this.player!.seekTo(startSeconds, true);
         //console.log('test', startSeconds, endSeconds, {videoId: this.getCurrentVideoId()!, startSeconds, endSeconds, start: startSeconds, end: endSeconds});
         this.player!.playVideo();
-    }
-
-    private getCurrentStartTimeS() {
-        return this.getStartEndTimes()[0];
-        // const timeMs = new Date().getTime();
-        // const videoStartTimestampMs = this.getCurrentSessionStatus()?.videoStartTimestamp || 0;
-        //
-        // return Math.round((timeMs - videoStartTimestampMs) / 1000);
-        //return 0;
     }
 }
 

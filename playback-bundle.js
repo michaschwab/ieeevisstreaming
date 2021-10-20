@@ -199,10 +199,8 @@
     changeYoutubeVideo() {
       const [startSeconds, endSeconds] = this.getStartEndTimes();
       this.player.loadVideoById({videoId: this.getCurrentVideoId(), startSeconds, endSeconds});
+      this.player.seekTo(startSeconds, true);
       this.player.playVideo();
-    }
-    getCurrentStartTimeS() {
-      return this.getStartEndTimes()[0];
     }
   };
 
@@ -236,7 +234,7 @@
       this.addSliceIfYouTube(slices, logs[logs.length - 1], -1);
       this.roomSlices = slices;
       if (this.roomSlices.length) {
-        this.clickStage(this.roomSlices[this.roomSlices.length - 1]);
+        this.clickStage(this.roomSlices[0]);
       }
       this.updateTable();
     }
@@ -250,7 +248,6 @@
         const stage = slice.stage;
         const active = this.currentSlice === slice;
         let duration = "";
-        const startText = !slice.log.time ? "" : new Date(slice.log.time).toISOString().substr(0, 16).replace("T", ", ");
         if (slice.duration != -1) {
           const durationMs = slice.duration;
           duration = new Date(durationMs).toISOString().substr(11, 8);

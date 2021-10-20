@@ -70,8 +70,6 @@ class IeeeVisStreamPlayback {
             const active = this.currentSlice === slice;
 
             let duration = '';
-            const startText = !slice.log.time ? '' :
-                new Date(slice.log.time).toISOString().substr(0, 16).replace('T', ', ');
 
             if(slice.duration != -1) {
                 const durationMs = slice.duration;
