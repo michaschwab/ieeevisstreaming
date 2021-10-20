@@ -14,6 +14,8 @@ export class IeeeVisVideoPlayer {
     youtubePlayerLoaded = false;
     youtubePlayerReady = false;
 
+    private lastVideoId? = '';
+
     constructor(private elementId: string,
                 private getCurrentStage: OmitThisParameter<() => (SessionStage | undefined)>,
                 private getCurrentVideoId: OmitThisParameter<() => string | undefined>,
@@ -29,16 +31,20 @@ export class IeeeVisVideoPlayer {
         if(!this.youtubeApiReady) {
             return;
         }
+        const currentVideoId = this.getCurrentVideoId();
 
         if(!this.youtubePlayerLoaded) {
             this.loadYoutubePlayer();
         } else {
-            if(!this.getCurrentVideoId() && this.player) {
+            if(!currentVideoId && this.player) {
                 this.player.stopVideo();
             } else {
-                this.changeYoutubeVideo();
+                if(currentVideoId && this.lastVideoId !== currentVideoId) {
+                    this.changeYoutubeVideo();
+                }
             }
         }
+        this.lastVideoId = currentVideoId;
     }
 
     setSize(width: number, height: number) {
@@ -71,6 +77,9 @@ export class IeeeVisVideoPlayer {
     }
 
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
+        if(!this.getCurrentVideoId()) {
+            return;
+        }
         if(state.data === PlayerState.UNSTARTED) {
             // This is to force the player to go to 0 because it does not recognize 0 as a start time in loadVideoById.
             this.player!.seekTo(this.getCurrentStartTimeS() || 0, true);
@@ -112,7 +121,11 @@ export class IeeeVisVideoPlayer {
 
     private changeYoutubeVideo() {
         // The seeking in the following line does not work for 0 (see workaround above).
-        this.player!.loadVideoById(this.getCurrentVideoId()!, this.getCurrentStartTimeS());
+        const currentVideoId = this.getCurrentVideoId();
+        if(!currentVideoId) {
+            return;
+        }
+        this.player!.loadVideoById(currentVideoId, this.getCurrentStartTimeS());
         this.player!.playVideo();
     }
 

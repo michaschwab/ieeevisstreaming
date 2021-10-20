@@ -114,9 +114,7 @@ class IeeeVisStream {
 
         document.getElementById('session-name')!.innerText = this.getCurrentStage()?.title || '';
 
-        if(this.getCurrentVideoId() != lastYtId) {
-            this.player.updateVideo();
-        }
+        this.player.updateVideo();
         if(this.getCurrentStage()?.imageUrl != this.getCurrentStageOfSession(lastSession)?.imageUrl) {
             this.loadPreviewImage();
         }
