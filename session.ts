@@ -38,6 +38,7 @@ export interface SessionStage {
     contributors?: string[];
     paper_uid?: string;
     video_length: string;
+    slido_label?: string;
     notes: string;
 }
 

@@ -109,6 +109,10 @@ class IeeeVisStreamAdmin {
 
             const tr = document.createElement('tr');
             tr.className = active ? 'active' : '';
+
+            const slidoLabel = stage.slido_label;
+
+
             tr.innerHTML = `
                 <td>` +
                 (isPreview ? `<a href="${imgUrl}" target="_blank">[Image] ${stage.title}</a>`
@@ -118,7 +122,17 @@ class IeeeVisStreamAdmin {
                 <td>${duration}</td>
                 <td>${timePlayed}</td>
                 <td>${stage.state}</td>
-                <td>${stage.notes || ''}</td>`;
+                <td>${stage.notes || ''}</td>
+                <td class="slido-col"></td>`;
+
+            if(slidoLabel) {
+                const slidoCopyLink = document.createElement('a');
+                slidoCopyLink.addEventListener('click', () => copyTextToClipboard(slidoLabel));
+                slidoCopyLink.innerText = slidoLabel + " 📋";
+                slidoCopyLink.className = 'slido-copy-link';
+                slidoCopyLink.title = `Click to copy ${slidoLabel} to your clipboard`;
+                tr.getElementsByClassName('slido-col')[0].appendChild(slidoCopyLink);
+            }
 
             tableBody.append(tr);
         }
@@ -255,4 +269,39 @@ interface LiveStreamingDetails {
         "totalResults": number,
         "resultsPerPage": number
     }
+}
+
+function fallbackCopyTextToClipboard(text: string) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        var successful = document.execCommand('copy');
+        var msg = successful ? 'successful' : 'unsuccessful';
+        console.log('Fallback: Copying text command was ' + msg);
+    } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+    }
+
+    document.body.removeChild(textArea);
+}
+function copyTextToClipboard(text: string) {
+    if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(text);
+        return;
+    }
+    navigator.clipboard.writeText(text).then(function() {
+        console.log('Successfully copied ', text);
+    }, function(err) {
+        console.error('Could not copy text ', err);
+    });
 }
