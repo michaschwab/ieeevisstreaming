@@ -49,7 +49,7 @@ class IeeeVisStreamPlayback {
 
         this.roomSlices = slices;
         if(this.roomSlices.length) {
-            this.clickStage(this.roomSlices[this.roomSlices.length - 1]);
+            this.clickStage(this.roomSlices[0]);
         }
 
         this.updateTable();
