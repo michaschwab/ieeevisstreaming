@@ -130,6 +130,9 @@ class IeeeVisStream {
     }
 
     getCurrentStageOfSession(session: Session | undefined) {
+        if(!session || !session?.currentStatus) {
+            return;
+        }
         return session?.stages[session?.currentStatus?.videoIndex];
     }
 
