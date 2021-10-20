@@ -59,6 +59,8 @@ export interface Log {
     status: SessionStatus;
     time: number;
     admin: string;
+    youtubeId: string;
+    title: string;
 }
 
 export interface RoomDayLogs {

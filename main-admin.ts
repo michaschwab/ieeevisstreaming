@@ -129,8 +129,21 @@ class IeeeVisStreamAdmin {
     }
 
     nextVideo() {
-        //TODO: don't allow going past the number of vids.
-        this.updateVideoIndex(this.session!.currentStatus.videoIndex + 1);
+        const currentStage = this.session?.stages[this.session!.currentStatus.videoIndex];
+        if(currentStage?.live) {
+            const nextStageButton = document.getElementById('next-video-button')! as HTMLButtonElement;
+            nextStageButton.disabled = true;
+            nextStageButton.innerText = 'Switching to next stage in 3...';
+            setTimeout(() => nextStageButton.innerText = 'Switching to next stage in 2...', 1500);
+            setTimeout(() => nextStageButton.innerText = 'Switching to next stage in 1...', 2500);
+            setTimeout(() => {
+                nextStageButton.innerText = 'Next Stage';
+                nextStageButton.disabled = false;
+                this.updateVideoIndex(this.session!.currentStatus.videoIndex + 1);
+            }, 3500);
+        } else {
+            this.updateVideoIndex(this.session!.currentStatus.videoIndex + 1);
+        }
     }
 
     sessionToRoom() {
@@ -141,11 +154,16 @@ class IeeeVisStreamAdmin {
             session: this.SESSION_ID,
             status: this.session!.currentStatus,
             admin: this.user?.uid!,
-            time: new Date().getTime()
+            time: new Date().getTime(),
+            youtubeId: this.session?.stages[this.session?.currentStatus.videoIndex].youtubeId || '',
+            title: this.session?.stages[this.session?.currentStatus.videoIndex].title || '',
         });
     }
 
     private async updateVideoIndex(index: number) {
+        if(!this.session?.stages[index]) {
+            return;
+        }
         const liveStreamStartTimestamp = await this.maybeLoadLiveVideoStart(index);
 
         const status: SessionStatus = {
@@ -161,7 +179,9 @@ class IeeeVisStreamAdmin {
                 session: this.SESSION_ID,
                 status,
                 admin: this.user?.uid!,
-                time: new Date().getTime()
+                time: new Date().getTime(),
+                youtubeId: this.session?.stages[status.videoIndex].youtubeId || '',
+                title: this.session?.stages[status.videoIndex].title || '',
             });
         }
 
