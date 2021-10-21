@@ -35,6 +35,7 @@ class IeeeVisStreamAdmin {
         document.getElementById('room-id')!.innerText = this.session.room;
         document.getElementById('session-time')!.innerText =
             `${formatDate(this.session.time_start)} until ${formatDate(this.session.time_end)}`;
+        document.getElementById('session-chair')!.innerText = this.session.chairs || '';
 
         this.db.loadRoom(session.room, room => this.onRoomUpdated(session.room, room));
     }
@@ -46,6 +47,8 @@ class IeeeVisStreamAdmin {
         }
         this.room = room;
         Array.from(document.getElementsByClassName('room-name')).map(el => (el as HTMLElement).innerText = room.name);
+        document.getElementById('room-link')!.innerHTML =
+            `<a href="https://virtual.ieeevis.org/year/2021/room_${roomId}.html" target="_blank">${room.name}</a>`;
         //document.getElementById('room-name')!.innerText = room.name;
         document.getElementById('room-currentsession')!.innerText = room.currentSession;
 
@@ -77,6 +80,7 @@ class IeeeVisStreamAdmin {
 
         document.getElementById('zoom-url')!.innerHTML =
             `<a href="${this.session.zoom_url}">${this.session.zoom_url}</a>`;
+
 
         document.getElementById('session-notes')!.innerText = this.session.notes;
 
@@ -122,6 +126,7 @@ class IeeeVisStreamAdmin {
                 <td>${duration}</td>
                 <td>${timePlayed}</td>
                 <td>${stage.state}</td>
+                <td>${stage.contributors || ''}</td>
                 <td>${stage.notes || ''}</td>
                 <td class="slido-col"></td>`;
 

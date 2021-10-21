@@ -11,6 +11,7 @@ export interface Session {
     has_live_captions: boolean;
     live_captions_url: string;
     zoom_url: string;
+    chairs: string;
 }
 
 export interface Room {
@@ -35,7 +36,7 @@ export interface SessionStage {
     state: SessionState;
     time_start?: string;
     time_end?: string;
-    contributors?: string[];
+    contributors?: string;
     paper_uid?: string;
     video_length: string;
     slido_label?: string;
