@@ -131,6 +131,7 @@
       document.getElementById("track-title").innerText = this.session.name;
       document.getElementById("room-id").innerText = this.session.room;
       document.getElementById("session-time").innerText = `${formatDate(this.session.time_start)} until ${formatDate(this.session.time_end)}`;
+      document.getElementById("session-chair").innerText = this.session.chairs || "";
       this.db.loadRoom(session.room, (room) => this.onRoomUpdated(session.room, room));
     }
     onRoomUpdated(roomId, room) {
@@ -139,6 +140,7 @@
       }
       this.room = room;
       Array.from(document.getElementsByClassName("room-name")).map((el) => el.innerText = room.name);
+      document.getElementById("room-link").innerHTML = `<a href="https://virtual.ieeevis.org/year/2021/room_${roomId}.html" target="_blank">${room.name}</a>`;
       document.getElementById("room-currentsession").innerText = room.currentSession;
       const isLive = this.isLive();
       document.getElementById("live-session-alert").style.display = isLive ? "block" : "none";
@@ -196,6 +198,7 @@
                 <td>${duration}</td>
                 <td>${timePlayed}</td>
                 <td>${stage.state}</td>
+                <td>${stage.contributors || ""}</td>
                 <td>${stage.notes || ""}</td>
                 <td class="slido-col"></td>`;
         if (slidoLabel) {
@@ -326,9 +329,9 @@
       return;
     }
     navigator.clipboard.writeText(text).then(function() {
-      console.log("Async: Copying to clipboard was successful!");
+      console.log("Successfully copied ", text);
     }, function(err) {
-      console.error("Async: Could not copy text: ", err);
+      console.error("Could not copy text ", err);
     });
   }
 })();
