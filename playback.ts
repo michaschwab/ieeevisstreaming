@@ -41,6 +41,7 @@ class IeeeVisStreamPlayback {
     getLogs(logsData: RoomDayLogs) {
         const slices: RoomSlice[] = [];
         const logs = Object.values(logsData) as Log[];
+        logs.sort((a, b) => a.time - b.time);
 
         for(let i = 1; i < logs.length; i++) {
             this.addSliceIfYouTube(slices, logs[i-1], logs[i].time - logs[i-1].time);
@@ -52,6 +53,7 @@ class IeeeVisStreamPlayback {
             this.clickStage(this.roomSlices[0]);
         }
 
+        console.log(this.roomSlices);
         this.updateTable();
     }
 
