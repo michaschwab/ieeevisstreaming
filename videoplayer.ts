@@ -76,6 +76,8 @@ export class IeeeVisVideoPlayer {
         this.updateVideo();
     }
 
+    private lastCatchupChecksLedToCatchup: boolean[] = [];
+
     private onPlayerStateChange(state: {target: YoutubePlayer, data: PlayerState}) {
         if(!this.getCurrentVideoId()) {
             return;
@@ -88,7 +90,13 @@ export class IeeeVisVideoPlayer {
         if(state.data === PlayerState.PLAYING || state.data === PlayerState.BUFFERING) {
             const startTime = this.getCurrentStartTimeS() || 0;
             const currentTime = this.player!.getCurrentTime();
-            if(Math.abs(startTime - currentTime) > 5) {
+            const shouldCatchUp = Math.abs(startTime - currentTime) > 5;
+
+            this.lastCatchupChecksLedToCatchup.push(shouldCatchUp);
+            this.lastCatchupChecksLedToCatchup = this.lastCatchupChecksLedToCatchup.slice(-4); // Last 4 checks
+            const notAllLastChecksForcedCatchup = this.lastCatchupChecksLedToCatchup.indexOf(false) !== -1;
+
+            if(shouldCatchUp && notAllLastChecksForcedCatchup) {
                 this.player!.seekTo(startTime, true);
                 console.log('lagging behind. seek.', this.getCurrentStartTimeS(), this.player!.getCurrentTime(), this.player!.getDuration(), this.player);
             }
