@@ -23,7 +23,7 @@ class IeeeVisStreamPlayback {
 
     hasStartedPlaying = false;
 
-    constructor(private ROOM_ID: string, private DAY: string) {
+    constructor(private ROOM_ID: string, private DAY: string, private SESSION: string) {
         this.db = new IeeeVisDb();
         this.player = new IeeeVisReplayVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
             this.getCurrentVideoId.bind(this),
@@ -42,8 +42,9 @@ class IeeeVisStreamPlayback {
 
     getLogs(logsData: RoomDayLogs) {
         const slices: RoomSlice[] = [];
-        const logs = Object.values(logsData) as Log[];
+        let logs = Object.values(logsData) as Log[];
         logs.sort((a, b) => a.time - b.time);
+        logs = logs.filter(l => !this.SESSION || l.session === this.SESSION);
 
         for(let i = 1; i < logs.length; i++) {
             this.addSliceIfYouTube(slices, logs[i-1], logs[i].time - logs[i-1].time);
@@ -216,9 +217,16 @@ export declare var playback: IeeeVisStreamPlayback;
 
 if(search && dayIndex) {
     const roomId = search.substr(0, dayIndex - 1);
-    const dayString = search.substr(dayIndex + 'day='.length);
+    let dayString = search.substr(dayIndex + 'day='.length);
+    const sessionIndex = dayString.indexOf('session=');
+    let sessionString = '';
+    if(sessionIndex !== -1) {
+        sessionString = dayString.substr(sessionIndex + 'session='.length);
+        dayString = dayString.substr(0, sessionIndex - 1);
+    }
+    console.log(roomId, dayString, sessionString);
 
-    playback = new IeeeVisStreamPlayback(roomId, dayString);
+    playback = new IeeeVisStreamPlayback(roomId, dayString, sessionString);
     document.getElementById('wrapper')!.style.display = 'flex';
     onYouTubeIframeAPIReady = () => {
         playback.onYouTubeIframeAPIReady();
