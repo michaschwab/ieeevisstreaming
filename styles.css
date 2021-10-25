@@ -70,7 +70,7 @@ iframe {
     transition: height ease 300ms;
 }
 
-#sidepanel {
+.playback #sidepanel {
     overflow-y: auto;
     height: 100vh;
 }
