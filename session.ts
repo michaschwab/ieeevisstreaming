@@ -8,8 +8,6 @@ export interface Session {
         [index: string]: SessionStage;
     };
     notes: string;
-    has_live_captions: boolean;
-    live_captions_url: string;
     zoom_url: string;
     chairs: string;
 }
@@ -41,6 +39,8 @@ export interface SessionStage {
     video_length: string;
     slido_label?: string;
     notes: string;
+    has_live_captions: boolean;
+    live_captions_url: string;
 }
 
 export type SessionState = "WATCHING" | "QA" | "SOCIALIZING" | "PREVIEW";
