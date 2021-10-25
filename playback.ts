@@ -21,6 +21,8 @@ class IeeeVisStreamPlayback {
     private sessionsData: {[id: string]: Session} = {};
     private roomSlices: RoomSlice[] = [];
 
+    hasStartedPlaying = false;
+
     constructor(private ROOM_ID: string, private DAY: string) {
         this.db = new IeeeVisDb();
         this.player = new IeeeVisReplayVideoPlayer(IeeeVisStreamPlayback.PLAYER_ELEMENT_ID,
@@ -49,7 +51,8 @@ class IeeeVisStreamPlayback {
         this.addSliceIfYouTube(slices, logs[logs.length-1], -1)
 
         this.roomSlices = slices;
-        if(this.roomSlices.length) {
+        if(this.roomSlices.length && !this.hasStartedPlaying) {
+            this.hasStartedPlaying = true;
             this.clickStage(this.roomSlices[0]);
         }
 
