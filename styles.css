@@ -1,7 +1,7 @@
 * {
     box-sizing: border-box;
 }
-body.viewer {
+body.viewer, body.playback {
     overflow: hidden;
 }
 h1, h2, h3, h4 {
